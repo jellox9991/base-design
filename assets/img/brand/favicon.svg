@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#000000"/>
+  <!-- open bracket, as in the logo -->
+  <path d="M46 13 H13 V51 H46" fill="none" stroke="#ffffff" stroke-width="5"/>
+  <!-- the red A -->
+  <path d="M20 45 L32 21 L44 45" fill="none" stroke="#f90130" stroke-width="6" stroke-linejoin="miter"/>
+</svg>

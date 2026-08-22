@@ -1,0 +1,15 @@
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# editors
+.vscode/
+.idea/
+
+# python
+__pycache__/
+*.pyc
+
+# local only
+.claude/

@@ -1,0 +1,42 @@
+{
+  "facade": [
+    "facade-01",
+    "facade-02",
+    "facade-03",
+    "facade-04",
+    "facade-05",
+    "facade-06"
+  ],
+  "salmiya": [
+    "salmiya-01",
+    "salmiya-02",
+    "salmiya-03",
+    "salmiya-04",
+    "salmiya-05",
+    "salmiya-06"
+  ],
+  "hollowcore": [
+    "hollowcore-01",
+    "hollowcore-02",
+    "hollowcore-03",
+    "hollowcore-04",
+    "hollowcore-05",
+    "hollowcore-06"
+  ],
+  "boq": [
+    "boq-01",
+    "boq-02",
+    "boq-03",
+    "boq-04",
+    "boq-05",
+    "boq-06"
+  ],
+  "hospital": [
+    "hospital-01",
+    "hospital-02",
+    "hospital-03",
+    "hospital-04",
+    "hospital-05",
+    "hospital-06"
+  ]
+}

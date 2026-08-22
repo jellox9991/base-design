@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jellox9991.github.io/base-design/sitemap.xml
