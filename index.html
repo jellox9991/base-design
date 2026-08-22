@@ -69,6 +69,7 @@
     </a>
 
     <nav class="nav__links" id="navLinks">
+      <a href="#walkthrough" data-i18n="navWalk">Walkthrough</a>
       <a href="#work"     data-i18n="navWork">Work</a>
       <a href="#services" data-i18n="navServices">Services</a>
       <a href="#process"  data-i18n="navProcess">Process</a>
@@ -138,6 +139,73 @@
     </header>
 
     <div class="compare-list" id="compareList"><!-- built from js/projects.js --></div>
+  </div>
+</section>
+
+<!-- ============ PLAN WALKTHROUGH ============ -->
+<section class="section walk" id="walkthrough">
+  <div class="wrap">
+    <header class="sec-head" data-reveal>
+      <p class="eyebrow" data-i18n="walkEyebrow">Walk the plan</p>
+      <h2 class="sec-title" data-i18n="walkTitle">Step inside, room by room.</h2>
+      <p class="sec-lede" data-i18n="walkLede">Click a point on the plan — or press play — and move through the house the way you would walk it. Every view is the same model the drawings came from.</p>
+    </header>
+
+    <div class="walk__grid" data-reveal>
+      <figure class="walk__plan">
+        <img id="walkPlan" src="assets/img/walk/salmiya-plan.webp" alt="Ground floor plan" loading="lazy" decoding="async">
+        <div class="walk__dots" id="walkDots"></div>
+      </figure>
+
+      <div class="walk__view">
+        <div class="walk__frame">
+          <img id="walkImg" src="" alt="" decoding="async">
+          <span class="walk__badge" id="walkBadge">1 / 6</span>
+        </div>
+        <div class="walk__info">
+          <h3 id="walkRoom">—</h3>
+          <p id="walkNote"></p>
+        </div>
+        <div class="walk__ctrl">
+          <button class="wbtn" id="walkPrev" type="button" aria-label="Previous room">&#8249;</button>
+          <button class="wbtn wbtn--play" id="walkPlay" type="button">
+            <span class="wbtn__icon" id="walkPlayIcon">▶</span>
+            <span data-i18n="walkPlay">Play walkthrough</span>
+          </button>
+          <button class="wbtn" id="walkNext" type="button" aria-label="Next room">&#8250;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BUILD-UP LAYERS ============ -->
+<section class="section layers" id="layers">
+  <div class="wrap">
+    <header class="sec-head" data-reveal>
+      <p class="eyebrow" data-i18n="layEyebrow">Anatomy</p>
+      <h2 class="sec-title" data-i18n="layTitle">From footing to ceramic.</h2>
+      <p class="sec-lede" data-i18n="layLede">Drag the slider through the build-up. Most studios show you the last frame. The value is in the seven before it — that is where the cost, and the mistakes, actually live.</p>
+    </header>
+
+    <div class="lay" data-reveal>
+      <div class="lay__stage">
+        <img id="layImg" src="" alt="" loading="lazy" decoding="async">
+        <span class="lay__step" id="layStep">01</span>
+      </div>
+
+      <div class="lay__panel">
+        <h3 id="layName">—</h3>
+        <p class="lay__spec" id="laySpec"></p>
+        <p class="lay__note" id="layNote"></p>
+      </div>
+
+      <div class="lay__track">
+        <input type="range" id="layRange" min="0" max="6" value="0" step="1"
+               aria-label="Construction layer">
+        <ol class="lay__ticks" id="layTicks"></ol>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -341,6 +409,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/projects.js"></script>
+<script src="js/walkthrough.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/main.js"></script>
 </body>

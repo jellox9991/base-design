@@ -41,6 +41,8 @@
       : "BASE — Architecture & Interior Design | Kuwait";
 
     buildCompares();
+    buildWalk();
+    buildLayers();
     buildGrid();
     applyFilter(currentFilter);
   }
@@ -119,7 +121,7 @@
       });
     });
   }, { rootMargin: "-45% 0px -50% 0px" });
-  ["work", "services", "process", "about", "contact"].forEach(function (id) {
+  ["walkthrough", "work", "services", "process", "about", "contact"].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) spy.observe(el);
   });
@@ -223,6 +225,163 @@
       if (e.key === "ArrowRight") { set(cur + 4); e.preventDefault(); }
       if (e.key === "Home")       { set(0);  e.preventDefault(); }
       if (e.key === "End")        { set(100); e.preventDefault(); }
+    });
+  }
+
+  /* ------------------------------------------------ plan walkthrough */
+  var walkIdx = 0, walkTimer = null;
+
+  function buildWalk() {
+    var W = window.WALKTHROUGH;
+    var dots = $("#walkDots");
+    if (!W || !dots) return;
+
+    var plan = $("#walkPlan");
+    if (plan) plan.src = W.plan;
+
+    dots.innerHTML = W.stops.map(function (s, i) {
+      var d = s[lang] || s.en;
+      return '<button class="dot" type="button" data-i="' + i + '" ' +
+             'style="left:' + s.x + '%;top:' + s.y + '%" ' +
+             'aria-label="' + d.room + '">' + (i + 1) + '</button>';
+    }).join("");
+
+    $$(".dot", dots).forEach(function (d) {
+      d.addEventListener("click", function () {
+        stopWalk();
+        showStop(parseInt(d.getAttribute("data-i"), 10));
+      });
+    });
+
+    showStop(walkIdx);
+  }
+
+  function showStop(i) {
+    var W = window.WALKTHROUGH;
+    if (!W || !W.stops[i]) return;
+    walkIdx = i;
+    var s = W.stops[i];
+    var d = s[lang] || s.en;
+
+    var img = $("#walkImg");
+    if (img) {
+      img.src = s.img;
+      img.alt = d.room;
+      // restart the fade so each step reads as a move, not a swap
+      img.style.animation = "none";
+      void img.offsetWidth;
+      img.style.animation = "";
+    }
+    var room = $("#walkRoom"); if (room) room.textContent = d.room;
+    var note = $("#walkNote"); if (note) note.textContent = d.note;
+    var badge = $("#walkBadge"); if (badge) badge.textContent = (i + 1) + " / " + W.stops.length;
+
+    $$(".dot").forEach(function (el) {
+      el.classList.toggle("is-on", parseInt(el.getAttribute("data-i"), 10) === i);
+    });
+  }
+
+  function stepWalk(n) {
+    var len = (window.WALKTHROUGH && window.WALKTHROUGH.stops.length) || 1;
+    showStop((walkIdx + n + len) % len);
+  }
+
+  function stopWalk() {
+    if (walkTimer) { clearInterval(walkTimer); walkTimer = null; }
+    var b = $("#walkPlay");
+    if (b) b.classList.remove("is-playing");
+    var ic = $("#walkPlayIcon");
+    if (ic) ic.textContent = "▶";
+    var lbl = $("#walkPlay span:last-child");
+    if (lbl) lbl.textContent = t("walkPlay");
+  }
+
+  function startWalk() {
+    stopWalk();
+    walkTimer = setInterval(function () { stepWalk(1); }, 2600);
+    var b = $("#walkPlay");
+    if (b) b.classList.add("is-playing");
+    var ic = $("#walkPlayIcon");
+    if (ic) ic.textContent = "❚❚";
+    var lbl = $("#walkPlay span:last-child");
+    if (lbl) lbl.textContent = t("walkPause");
+  }
+
+  var wPlay = $("#walkPlay");
+  if (wPlay) {
+    wPlay.addEventListener("click", function () {
+      if (walkTimer) stopWalk(); else startWalk();
+    });
+  }
+  var wNext = $("#walkNext");
+  if (wNext) wNext.addEventListener("click", function () { stopWalk(); stepWalk(1); });
+  var wPrev = $("#walkPrev");
+  if (wPrev) wPrev.addEventListener("click", function () { stopWalk(); stepWalk(-1); });
+
+  // don't let it run while off-screen
+  var walkSection = $("#walkthrough");
+  if (walkSection) {
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (!e.isIntersecting) stopWalk(); });
+    }, { threshold: 0.15 }).observe(walkSection);
+  }
+
+  /* ------------------------------------------------ build-up layers */
+  var layIdx = 0;
+
+  function buildLayers() {
+    var L = window.LAYERS;
+    var ticks = $("#layTicks");
+    if (!L || !ticks) return;
+
+    ticks.innerHTML = L.map(function (l, i) {
+      var d = l[lang] || l.en;
+      return '<li data-i="' + i + '">' + d.name + '</li>';
+    }).join("");
+
+    $$("li", ticks).forEach(function (li) {
+      li.addEventListener("click", function () {
+        showLayer(parseInt(li.getAttribute("data-i"), 10));
+      });
+    });
+
+    var range = $("#layRange");
+    if (range) {
+      range.max = String(L.length - 1);
+      range.value = String(layIdx);
+      range.addEventListener("input", function () {
+        showLayer(parseInt(range.value, 10));
+      });
+    }
+    showLayer(layIdx);
+  }
+
+  function showLayer(i) {
+    var L = window.LAYERS;
+    if (!L || !L[i]) return;
+    layIdx = i;
+    var l = L[i];
+    var d = l[lang] || l.en;
+
+    var img = $("#layImg");
+    if (img) {
+      img.src = l.img;
+      img.alt = d.name;
+      img.style.animation = "none";
+      void img.offsetWidth;
+      img.style.animation = "";
+    }
+    var step = $("#layStep");
+    if (step) step.textContent = String(i + 1).padStart(2, "0");
+    var name = $("#layName"); if (name) name.textContent = d.name;
+    var spec = $("#laySpec"); if (spec) spec.textContent = d.spec;
+    var note = $("#layNote"); if (note) note.textContent = d.note;
+
+    var range = $("#layRange");
+    if (range && range.value !== String(i)) range.value = String(i);
+
+    $$("#layTicks li").forEach(function (li) {
+      li.classList.toggle("is-on", parseInt(li.getAttribute("data-i"), 10) === i);
     });
   }
 

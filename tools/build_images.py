@@ -15,7 +15,14 @@ from PIL import Image, ImageOps
 Image.MAX_IMAGE_PIXELS = None
 
 SRC = r"C:\Users\jalal\Desktop\JALAL\اعمال سابقة\j\Main work portfolio"
+# Anything outside the curated portfolio folder is addressed from here.
+JALAL = r"C:\Users\jalal\Desktop\JALAL"
 BRAND_SRC = r"C:\Users\jalal\Desktop\JALAL\اعمال سابقة\00- BASE\logo.png"
+
+# live client work, addressed relative to JALAL
+INT = r"قيد التصميم\جاسم يوسف الشرقاوي\6-FACADE\interior"
+ATHARI = r"قيد التصميم\علي الشيخ الاثري"
+FAISAL = r"قيد التصميم\فيصل العنزي"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "assets", "img")
 
@@ -135,6 +142,84 @@ COMPARES = [
 
 HERO = "002 facade/ChatGPT Image Apr 30, 2026, 04_15_48 PM.png"
 
+# ---------------------------------------------------------- new projects
+# Sourced from live client folders rather than the curated portfolio.
+PROJECTS_ALT = {
+    "villa329": (ATHARI, [
+        ("ChatGPT Image Sep 17, 2025, 10_25_22 AM.png", "villa329-01"),
+        ("Enscape_2025-09-17-10-07-34.png",             "villa329-02"),
+        ("Enscape_2025-09-17-10-15-59.png",             "villa329-03"),
+        ("Enscape_2025-09-17-10-29-49.png",             "villa329-04"),
+        ("Enscape_2025-09-17-14-45-34.png",             "villa329-05"),
+        ("Enscape_2025-09-17-10-19-38.png",             "villa329-06"),
+    ]),
+    "faisal": (FAISAL, [
+        ("16.jpg",  "faisal-01"),
+        ("17.jpg",  "faisal-02"),
+        ("12.jpg",  "faisal-03"),
+        ("18.jpg",  "faisal-04"),
+        ("1.png",   "faisal-05"),
+        ("21.jpg",  "faisal-06"),
+    ]),
+}
+
+# ------------------------------------------------------ plan walkthrough
+# The furnished ground-floor plan, plus the interior views you step through.
+WALK_PLAN = (INT, "GF.jpg", "walk/salmiya-plan.webp", (2600, 1724))
+WALK_STOPS = [
+    (INT, "Scene 3.png",   "walk/salmiya-s1.webp"),
+    (INT, "2.png",         "walk/salmiya-s2.webp"),
+    (INT, "100.png",       "walk/salmiya-s3.webp"),
+    (INT, "F1.png",        "walk/salmiya-s4.webp"),
+    (INT, "full post.png", "walk/salmiya-s5.webp"),
+    (INT, "10.jpg",        "walk/salmiya-s6.webp"),
+]
+
+# ------------------------------------------------------- build-up layers
+# Raw structure through to finished surface. Sources are a mix of the BOQ
+# and hollow-core packages plus the finished interior.
+LAYERS = [
+    (SRC,   r"005 BOQ\footing sec.jpg",                              "layers/l1.webp"),
+    (SRC,   r"005 BOQ\rebar 5.jpg",                                  "layers/l2.webp"),
+    (SRC,   r"005 BOQ\3961de2f-441f-4caf-a65d-56d90abf767c.png",     "layers/l3.webp"),
+    (SRC,   r"003 dr safaa\ChatGPT Image May 4, 2026, 10_29_28 AM.png", "layers/l4.webp"),
+    (SRC,   r"003 dr safaa\ChatGPT Image May 4, 2026, 09_54_31 AM.png", "layers/l5.webp"),
+    (JALAL, INT + r"\FF 1.jpg",                                      "layers/l6.webp"),
+    (JALAL, INT + r"\2.png",                                         "layers/l7.webp"),
+]
+
+
+def derive_from(root, rel, out_stem, sizes=SIZES):
+    """Same as derive() but rooted anywhere."""
+    src = os.path.join(root, rel)
+    if not os.path.exists(src):
+        print("  MISSING:", rel)
+        return None
+    im = load(src)
+    w, h = im.size
+    total = 0
+    for name, (width, q) in sizes.items():
+        c = im.copy()
+        if c.width > width:
+            c = c.resize((width, round(width * c.height / c.width)), Image.LANCZOS)
+        total += save_webp(c, f"{out_stem}-{name}.webp", q)
+    print(f"  {out_stem:34s} {w}x{h} -> {total/1024:.0f}KB")
+    return (w, h)
+
+
+def derive_wide(root, rel, out_rel, max_w, quality=82):
+    """Resize to a max width, keeping the full frame (no cropping)."""
+    src = os.path.join(root, rel)
+    if not os.path.exists(src):
+        print("  MISSING:", rel)
+        return False
+    im = load(src)
+    if im.width > max_w:
+        im = im.resize((max_w, round(max_w * im.height / im.width)), Image.LANCZOS)
+    kb = save_webp(im, out_rel, quality) / 1024
+    print(f"  {out_rel:32s} {im.width}x{im.height} -> {kb:.0f}KB")
+    return True
+
 
 def build_brand():
     """Trim the logo's black field and emit transparent PNG + favicon."""
@@ -214,12 +299,30 @@ def main():
         derive_cover(inte, f"transitions/{slug}-interior.webp", COMPARE_BOX,
                      centering=cent)
 
+    print("\nplan walkthrough:")
+    root, rel, out, box = WALK_PLAN
+    derive_wide(JALAL, os.path.join(root, rel), out, box[0], 84)
+    for r, f, o in WALK_STOPS:
+        derive_wide(JALAL, os.path.join(r, f), o, 1800)
+
+    print("\nbuild-up layers:")
+    for root, rel, out in LAYERS:
+        derive_wide(root, rel, out, 1700)
+
     manifest = {}
     for key, items in PROJECTS.items():
         print(f"\n{key}:")
         got = []
         for src_rel, stem in items:
             if derive(src_rel, f"projects/{stem}"):
+                got.append(stem)
+        manifest[key] = got
+
+    for key, (root, items) in PROJECTS_ALT.items():
+        print(f"\n{key}:")
+        got = []
+        for fname, stem in items:
+            if derive_from(JALAL, os.path.join(root, fname), f"projects/{stem}"):
                 got.append(stem)
         manifest[key] = got
 

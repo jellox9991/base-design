@@ -9,6 +9,7 @@ window.I18N = {
     brandLine1: "Architecture &amp;",
     brandLine2: "Interior Design",
 
+    navWalk: "Walkthrough",
     navWork: "Work",
     navServices: "Services",
     navProcess: "Process",
@@ -31,6 +32,16 @@ window.I18N = {
     tagExterior: "Exterior",
     tagInterior: "Interior",
     dragHint: "Drag",
+
+    walkEyebrow: "Walk the plan",
+    walkTitle: "Step inside, room by room.",
+    walkLede: "Click a point on the plan — or press play — and move through the house the way you would walk it. Every view is the same model the drawings came from.",
+    walkPlay: "Play walkthrough",
+    walkPause: "Pause",
+
+    layEyebrow: "Anatomy",
+    layTitle: "From footing to ceramic.",
+    layLede: "Drag the slider through the build-up. Most studios show you the last frame. The value is in the six before it — that is where the cost, and the mistakes, actually live.",
 
     workEyebrow: "Selected projects",
     workTitle: "The work",
@@ -116,6 +127,7 @@ window.I18N = {
     brandLine1: "العمارة و",
     brandLine2: "التصميم الداخلي",
 
+    navWalk: "جولة",
     navWork: "الأعمال",
     navServices: "الخدمات",
     navProcess: "منهجية العمل",
@@ -138,6 +150,16 @@ window.I18N = {
     tagExterior: "الخارج",
     tagInterior: "الداخل",
     dragHint: "اسحب",
+
+    walkEyebrow: "تجوّل في المخطط",
+    walkTitle: "ادخل، غرفة بعد غرفة.",
+    walkLede: "اضغط على أي نقطة في المخطط — أو شغّل الجولة — وتنقّل داخل البيت كما لو كنت تمشي فيه. كل لقطة من النموذج نفسه الذي خرجت منه المخططات.",
+    walkPlay: "تشغيل الجولة",
+    walkPause: "إيقاف",
+
+    layEyebrow: "التركيب",
+    layTitle: "من القاعدة إلى السيراميك.",
+    layLede: "اسحب المؤشّر عبر طبقات التركيب. أغلب المكاتب تعرض عليك اللقطة الأخيرة فقط، بينما القيمة في الستّ التي تسبقها — فهناك تكمن التكلفة، وهناك تحدث الأخطاء.",
 
     workEyebrow: "مشاريع مختارة",
     workTitle: "الأعمال",

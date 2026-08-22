@@ -89,6 +89,46 @@ window.PROJECTS = [
   },
 
   {
+    id: "villa329",
+    cat: ["architecture", "exterior"],
+    cover: "villa329-01",
+    year: "2025",
+    en: {
+      title: "Villa 329",
+      place: "Kuwait",
+      meta: "Architecture · Façade · Visualization",
+      desc: "A private villa built on a sculpted composition of solid and screen — warm stone against off-white render, with a perforated panel filtering the western sun. Studied through a full set of renders at different times of day before a line was committed."
+    },
+    ar: {
+      title: "فيلا ٣٢٩",
+      place: "الكويت",
+      meta: "عمارة · واجهات · إظهار",
+      desc: "فيلا خاصة قائمة على تكوين نحتي بين الكتلة المصمتة والمشربية — حجر دافئ مقابل بلاستر فاتح، مع لوح مثقّب يرشّح شمس الغرب. دُرست بمجموعة كاملة من المناظير في أوقات مختلفة من النهار قبل اعتماد أي خط."
+    },
+    images: ["villa329-01", "villa329-02", "villa329-03", "villa329-04", "villa329-05", "villa329-06"]
+  },
+
+  {
+    id: "faisal",
+    cat: ["architecture", "exterior"],
+    cover: "faisal-01",
+    year: "2025",
+    en: {
+      title: "Private Villa — Contemporary Classic",
+      place: "Kuwait",
+      meta: "Architecture · Façade · Visualization",
+      desc: "A restrained contemporary-classic elevation: vertical proportions, a recessed entrance bay and a quiet palette. Rendered across day, dusk and night to check how the façade holds up under each, plus an internal courtyard study."
+    },
+    ar: {
+      title: "فيلا خاصة — كلاسيكي معاصر",
+      place: "الكويت",
+      meta: "عمارة · واجهات · إظهار",
+      desc: "واجهة كلاسيكية معاصرة مضبوطة: نسب رأسية، ومدخل غائر، ولوحة ألوان هادئة. أُظهرت نهاراً وعند الغروب وليلاً للتأكد من ثبات الواجهة في كل حالة، مع دراسة للفناء الداخلي."
+    },
+    images: ["faisal-01", "faisal-02", "faisal-03", "faisal-04", "faisal-05", "faisal-06"]
+  },
+
+  {
     id: "hospital",
     cat: ["architecture", "exterior"],
     cover: "hospital-01",
