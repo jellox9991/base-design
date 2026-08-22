@@ -57,8 +57,18 @@
     var mail = $("#mailLink");
     if (mail && s.email) { mail.href = "mailto:" + s.email; mail.textContent = s.email; }
 
+    // No Instagram yet? Hide the whole row rather than ship a dead link.
     var ig = $("#igLink");
-    if (ig && s.instagram) { ig.href = s.instagram; ig.textContent = s.instagramHandle || s.instagram; }
+    if (ig) {
+      var row = ig.closest("li");
+      if (s.instagram) {
+        ig.href = s.instagram;
+        ig.textContent = s.instagramHandle || s.instagram;
+        if (row) row.removeAttribute("hidden");
+      } else if (row) {
+        row.setAttribute("hidden", "");
+      }
+    }
 
     var form = $("#contactForm");
     if (form && s.formEndpoint) form.setAttribute("action", s.formEndpoint);
