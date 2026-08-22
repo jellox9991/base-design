@@ -125,11 +125,11 @@ html[lang="ar"] .btn{ letter-spacing:.05em; font-size:14px; }
 
 .brand{ display:flex; align-items:center; flex:none; }
 .brand__mark{
-  height:32px; width:auto;
+  height:40px; width:auto;
   transition:opacity .3s var(--ease);
 }
 .brand:hover .brand__mark{ opacity:.75; }
-@media (max-width:560px){ .brand__mark{ height:26px; } }
+@media (max-width:560px){ .brand__mark{ height:32px; } }
 
 .nav__links{ display:flex; align-items:center; gap:clamp(18px,2.4vw,36px); }
 .nav__links a{
@@ -362,14 +362,23 @@ html[lang="ar"] .chip{ letter-spacing:.03em; font-size:13px; }
 .card__media img{
   width:100%; height:100%; object-fit:cover;
   transition:transform 1.1s var(--slow), filter .6s var(--ease);
-  filter:grayscale(.25) brightness(.9);
+  /* light touch only — these are the renders, they should read clearly */
+  filter:grayscale(.12) brightness(.96);
 }
 .card:hover .card__media img{ transform:scale(1.07); filter:grayscale(0) brightness(1); }
+/* Renders are bright and the caption sits on top of them, so the scrim has
+   to stay strong all the way up past the category label — the small red
+   text is the first thing to disappear against a pale render. */
 .card__media::after{
   content:''; position:absolute; inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.12) 52%,transparent 100%);
+  background:linear-gradient(to top,
+    rgba(0,0,0,.95) 0%, rgba(0,0,0,.88) 34%,
+    rgba(0,0,0,.55) 58%, rgba(0,0,0,.12) 82%, transparent 100%);
 }
-.card__body{ position:absolute; inset-inline:0; bottom:0; z-index:2; padding:22px 22px 20px; }
+.card__body{
+  position:absolute; inset-inline:0; bottom:0; z-index:2; padding:22px 22px 20px;
+  text-shadow:0 1px 12px rgba(0,0,0,.85);
+}
 .card__cat{
   font-size:10px; letter-spacing:.26em; text-transform:uppercase;
   color:var(--red); margin-bottom:8px;

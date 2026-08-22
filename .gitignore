@@ -13,3 +13,4 @@ __pycache__/
 
 # local only
 .claude/
+_shot.html

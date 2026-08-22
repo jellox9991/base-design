@@ -60,13 +60,17 @@ def derive(src_rel, out_stem, sizes=SIZES):
     return (w, h)
 
 
-def derive_cover(src_rel, out_rel, box, quality=82):
-    """Center-crop to an exact box — used for compare pairs and the hero."""
+def derive_cover(src_rel, out_rel, box, quality=82, centering=(0.5, 0.5)):
+    """Crop to an exact box — used for compare pairs and the hero.
+
+    `centering` biases which part survives the crop; renders with a lot of
+    sky need to be pulled downward or the pair ends up comparing two skies.
+    """
     src = os.path.join(SRC, src_rel)
     if not os.path.exists(src):
         print("  MISSING:", src_rel)
         return False
-    im = ImageOps.fit(load(src), box, Image.LANCZOS, centering=(0.5, 0.5))
+    im = ImageOps.fit(load(src), box, Image.LANCZOS, centering=centering)
     kb = save_webp(im, out_rel, quality) / 1024
     print(f"  {out_rel:44s} {box[0]}x{box[1]} -> {kb:.0f}KB")
     return True
@@ -117,14 +121,16 @@ PROJECTS = {
     ],
 }
 
-# exterior  ->  interior/section, same building
+# exterior -> interior/section, same building.
+# Fourth item is the crop centering for the pair (y below 0.5 = keep more
+# of the lower half, which is where the building is in an aerial render).
 COMPARES = [
     ("002 facade/ChatGPT Image Apr 30, 2026, 04_02_07 PM.png",
-     "002 facade/sec full render.png", "c1"),
-    ("000 graduation project/hospital image.png",
-     "000 graduation project/sec 1 render.png", "c2"),
+     "002 facade/sec full render.png", "c1", (0.5, 0.5)),
+    ("000 graduation project/ChatGPT Image May 2, 2026, 03_36_07 PM.png",
+     "000 graduation project/sec 2 render.png", "c2", (0.5, 0.72)),
     ("003 dr safaa/structure.jpg",
-     "003 dr safaa/sec structureee.jpg", "c3"),
+     "003 dr safaa/sec structureee.jpg", "c3", (0.5, 0.55)),
 ]
 
 HERO = "002 facade/ChatGPT Image Apr 30, 2026, 04_15_48 PM.png"
@@ -151,6 +157,39 @@ def build_brand():
     im.save(os.path.join(OUT, "brand", "logo.png"))
     print(f"  logo.png  {im.size[0]}x{im.size[1]}")
 
+    # Nav mark: the same lockup minus the two tagline lines, which turn to
+    # mush at nav size. Found by locating ink bands to the right of the
+    # bracket rather than hard-coding pixel offsets.
+    mark = im.copy()
+    w, h = mark.size
+    alpha = mark.split()[-1]
+    px = alpha.load()
+
+    def ink_rows(x0, x1):
+        rows, run = [], None
+        for y in range(h):
+            hit = any(px[x, y] > 40 for x in range(x0, x1, 3))
+            if hit and run is None:
+                run = y
+            elif not hit and run is not None:
+                rows.append((run, y - 1)); run = None
+        if run is not None:
+            rows.append((run, h - 1))
+        return rows
+
+    right = ink_rows(int(w * 0.58), w)
+    # the first band is the SE letters; anything after it is the tagline.
+    # Back off a few rows — the sampling stride can miss the first thin line.
+    if len(right) > 1:
+        top = max(right[0][1] + 4, right[1][0] - 10)
+        clear = Image.new("RGBA", (w - int(w * 0.55), h - top), (0, 0, 0, 0))
+        mark.paste(clear, (int(w * 0.55), top))
+    bb = mark.getbbox()
+    if bb:
+        mark = mark.crop(bb)
+    mark.save(os.path.join(OUT, "brand", "logo-mark.png"))
+    print(f"  logo-mark.png  {mark.size[0]}x{mark.size[1]}  (tagline removed)")
+
     # og cover: logo centred on black, 1200x630
     og = Image.new("RGB", (1200, 630), (0, 0, 0))
     lg = im.copy()
@@ -169,9 +208,11 @@ def main():
     derive_cover(HERO, "transitions/hero.webp", (2400, 1350), 80)
 
     print("\ncompare pairs:")
-    for ext, inte, slug in COMPARES:
-        derive_cover(ext,  f"transitions/{slug}-exterior.webp", COMPARE_BOX)
-        derive_cover(inte, f"transitions/{slug}-interior.webp", COMPARE_BOX)
+    for ext, inte, slug, cent in COMPARES:
+        derive_cover(ext,  f"transitions/{slug}-exterior.webp", COMPARE_BOX,
+                     centering=cent)
+        derive_cover(inte, f"transitions/{slug}-interior.webp", COMPARE_BOX,
+                     centering=cent)
 
     manifest = {}
     for key, items in PROJECTS.items():
