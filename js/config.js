@@ -13,8 +13,8 @@ window.SITE = {
   email: "jalalmahmoud65@gmail.com",
 
   // Leave both empty and the Instagram row hides itself.
-  instagram: "",
-  instagramHandle: "",
+  instagram: "https://instagram.com/base_architecture_",
+  instagramHandle: "@base_architecture_",
 
   // Free form endpoint — sign up at https://formspree.io, create a form,
   // and paste the URL here. Until then the form falls back to WhatsApp.
