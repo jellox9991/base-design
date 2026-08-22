@@ -447,6 +447,12 @@ html[lang="ar"] .svc li{ letter-spacing:0; font-size:13.5px; text-transform:none
 .about__text .btn{ margin-top:34px; }
 
 .stats{ display:grid; gap:1px; background:var(--line-2); border:1px solid var(--line-2); }
+/* display:grid would otherwise defeat the hidden attribute */
+.stats[hidden]{ display:none; }
+/* and don't leave an empty column behind when it is hidden */
+@media (min-width:980px){
+  .about__inner:has(.stats[hidden]){ grid-template-columns:1fr; }
+}
 .stats li{ background:var(--black); padding:clamp(24px,3vw,34px); }
 .stats strong{
   display:block; font-size:clamp(40px,5vw,64px); font-weight:200;
