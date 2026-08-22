@@ -72,6 +72,35 @@ social share image from the brand file.
 
 Requires Pillow: `pip install pillow`
 
+### Grading
+
+Raw Enscape/Lumion output is flat. `tools/grade.py` applies the post-production
+pass — tone curve, light split-tone, local contrast, sharpening, vignette:
+
+```bash
+python tools/grade.py preview
+```
+
+That writes three-up comparisons (raw / subtle / strong) so you can pick a
+level. Then apply it:
+
+```bash
+python tools/grade.py apply 0.55
+```
+
+Only photographic renders are graded. Plans, BOQ sheets and structural
+diagrams are excluded by list — grading a drawing just makes it look dirty.
+
+Grading is destructive and writes an `assets/img/.graded` marker so it cannot
+stack by accident. To change the level, rebuild first:
+
+```bash
+python tools/build_images.py && python tools/grade.py apply 0.7
+```
+
+Warmth is kept deliberately low. Pushing it looks richer but shifts the
+specified finishes, and clients pick materials off these images.
+
 ---
 
 ## Contact form
