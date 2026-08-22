@@ -81,7 +81,7 @@ window.I18N = {
     abtP1: "BASE is a Kuwait-based architecture and interior design studio. We work on villas, additions, offices and retail — and we take the project the whole way, from the first sketch to the bill of quantities the contractor prices.",
     abtP2: "Most studios hand over beautiful drawings and disappear before the numbers arrive. Our BOQ work exists because that gap is where clients lose money. Design and cost are done under one roof, by the same people.",
     abtCta: "Talk to us",
-    stat1: "Projects delivered",
+    stat1: "Projects delivered in Kuwait",
     stat2: "Years in Kuwait",
     stat3: "In-house BOQ",
 
@@ -188,7 +188,7 @@ window.I18N = {
     abtP1: "بيس مكتب عمارة وتصميم داخلي في الكويت. نعمل على الفلل والإضافات والمكاتب والمحلات — ونأخذ المشروع كاملاً، من أول اسكتش حتى جدول الكميات الذي يسعّره المقاول.",
     abtP2: "أغلب المكاتب تسلّم مخططات جميلة ثم تختفي قبل أن تصل الأرقام. خدمتنا في جداول الكميات وُجدت لأن هذه الفجوة تحديداً هي التي يخسر فيها العميل ماله. التصميم والتكلفة عندنا تحت سقف واحد وبنفس الأيدي.",
     abtCta: "تواصل معنا",
-    stat1: "مشروع منجز",
+    stat1: "مشروع منجز في الكويت",
     stat2: "سنوات في الكويت",
     stat3: "جداول كميات داخلية",
 
