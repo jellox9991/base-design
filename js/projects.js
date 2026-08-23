@@ -2,7 +2,11 @@
    BASE — project data
    This is the ONLY file you need to edit to add or change work.
 
-   cat:    architecture | interior | exterior | boq
+   hidden: true  keeps a project in this file but off the site. Used for
+                 client-identifiable work and student work. Delete the line
+                 or set it to false to bring a project back.
+
+   cat:    architecture | interior | exterior | boq | concept
    images: file stems in assets/img/projects/ (without -thumb / -full)
    The first image is the cover.
    ============================================================ */
@@ -10,6 +14,7 @@
 window.PROJECTS = [
   {
     id: "facade",
+    hidden: true,   // set false to put this project back on the site
     cat: ["architecture", "exterior"],
     cover: "facade-01",
     year: "2024",
@@ -30,6 +35,7 @@ window.PROJECTS = [
 
   {
     id: "salmiya",
+    hidden: true,   // set false to put this project back on the site
     cat: ["interior"],
     cover: "salmiya-01",
     year: "2025",
@@ -90,6 +96,7 @@ window.PROJECTS = [
 
   {
     id: "villa329",
+    hidden: true,   // set false to put this project back on the site
     cat: ["architecture", "exterior"],
     cover: "villa329-01",
     year: "2025",
@@ -110,6 +117,7 @@ window.PROJECTS = [
 
   {
     id: "faisal",
+    hidden: true,   // set false to put this project back on the site
     cat: ["architecture", "exterior"],
     cover: "faisal-01",
     year: "2025",
@@ -130,6 +138,7 @@ window.PROJECTS = [
 
   {
     id: "hospital",
+    hidden: true,   // set false to put this project back on the site
     cat: ["architecture", "exterior"],
     cover: "hospital-01",
     year: "2023",

@@ -11,9 +11,10 @@
 
 window.WALKTHROUGH = {
   plan: "assets/img/walk/salmiya-plan.webp",
+  // Client name deliberately omitted — the project is not listed on the site.
   project: {
-    en: { title: "Al-Salmiya Residence", meta: "Ground floor · walk the plan" },
-    ar: { title: "سكن السالمية", meta: "الدور الأرضي · تجوّل في المخطط" }
+    en: { title: "Private Residence, Kuwait", meta: "Ground floor · walk the plan" },
+    ar: { title: "سكن خاص، الكويت", meta: "الدور الأرضي · تجوّل في المخطط" }
   },
   stops: [
     {

@@ -44,6 +44,7 @@
     buildWalk();
     buildLayers();
     buildGrid();
+    syncChips();
     applyFilter(currentFilter);
   }
 
@@ -393,11 +394,15 @@
     return cats.map(function (c) { return t(map[c]); }).join(" · ");
   }
 
+  function visibleProjects() {
+    return (window.PROJECTS || []).filter(function (p) { return !p.hidden; });
+  }
+
   function buildGrid() {
     var host = $("#grid");
     if (!host || !window.PROJECTS) return;
 
-    host.innerHTML = window.PROJECTS.map(function (p, i) {
+    host.innerHTML = visibleProjects().map(function (p, i) {
       var d = p[lang] || p.en;
       return '' +
         '<article class="card" data-cat="' + p.cat.join(" ") + '" data-idx="' + i + '" data-reveal style="--d:' + (i % 3) * 90 + 'ms" tabindex="0" role="button" aria-label="' + d.title + '">' +
@@ -425,6 +430,30 @@
     watchReveals();
   }
 
+  /* A filter with nothing behind it renders an empty grid, which reads as
+     broken rather than as "no projects in this category". Hide those. */
+  function syncChips() {
+    var live = visibleProjects();
+    var counts = {};
+    live.forEach(function (p) {
+      p.cat.forEach(function (c) { counts[c] = (counts[c] || 0) + 1; });
+    });
+
+    var usable = ["all"];
+    $$(".chip").forEach(function (c) {
+      var f = c.getAttribute("data-filter");
+      var ok = f === "all" ? live.length > 0 : (counts[f] || 0) > 0;
+      c.hidden = !ok;
+      if (ok) usable.push(f);
+    });
+
+    // only one real category left? the filter row is noise — drop it
+    var row = $(".filters");
+    if (row) row.hidden = usable.length <= 2;
+
+    if (usable.indexOf(currentFilter) === -1) currentFilter = "all";
+  }
+
   function applyFilter(f) {
     currentFilter = f;
     $$(".chip").forEach(function (c) {
@@ -445,7 +474,7 @@
   var gallery = [], gi = 0;
 
   function openProject(idx) {
-    var p = window.PROJECTS[idx];
+    var p = visibleProjects()[idx];
     if (!p) return;
     var d = p[lang] || p.en;
     gallery = p.images.map(function (stem, n) {
