@@ -61,6 +61,8 @@ window.I18N = {
     fInt: "Interior",
     fExt: "Exterior",
     fBoq: "BOQ",
+    fConcept: "Concept",
+    conceptBadge: "Unbuilt",
     viewProject: "View project",
     imagesLabel: "images",
 
@@ -190,6 +192,8 @@ window.I18N = {
     fInt: "داخلي",
     fExt: "خارجي",
     fBoq: "جداول كميات",
+    fConcept: "دراسات",
+    conceptBadge: "غير منفّذ",
     viewProject: "عرض المشروع",
     imagesLabel: "صورة",
 

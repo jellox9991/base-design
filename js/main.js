@@ -390,7 +390,8 @@
   var currentFilter = "all";
 
   function catLabel(cats) {
-    var map = { architecture: "fArch", interior: "fInt", exterior: "fExt", boq: "fBoq" };
+    var map = { architecture: "fArch", interior: "fInt", exterior: "fExt",
+                boq: "fBoq", concept: "fConcept" };
     return cats.map(function (c) { return t(map[c]); }).join(" · ");
   }
 
@@ -409,6 +410,9 @@
           '<div class="card__media">' +
             '<img src="' + IMG + p.cover + '-thumb.webp" alt="' + d.title + ', ' + d.place + '" loading="lazy" decoding="async">' +
           '</div>' +
+          // speculative work is labelled on the card, not just in the copy
+          (p.cat.indexOf("concept") !== -1
+            ? '<span class="card__flag">' + t("conceptBadge") + '</span>' : "") +
           '<span class="card__go" aria-hidden="true">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M9 7h8v8"/></svg>' +
           '</span>' +

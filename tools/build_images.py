@@ -23,6 +23,11 @@ BRAND_SRC = r"C:\Users\jalal\Desktop\JALAL\اعمال سابقة\00- BASE\logo.p
 INT = r"قيد التصميم\جاسم يوسف الشرقاوي\6-FACADE\interior"
 ATHARI = r"قيد التصميم\علي الشيخ الاثري"
 FAISAL = r"قيد التصميم\فيصل العنزي"
+
+# unbuilt / speculative studies
+SHALEH = r"اعمال سابقة\modern\SHALEH"
+CLASSIC = r"اعمال سابقة\CLASSIC FACADE"
+VANCOUVER = r"اعمال سابقة\j\FREELANCE\Vancouver Tall Challenge files"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "assets", "img")
 
@@ -160,6 +165,29 @@ PROJECTS_ALT = {
         ("18.jpg",  "faisal-04"),
         ("1.png",   "faisal-05"),
         ("21.jpg",  "faisal-06"),
+    ]),
+
+    # ---- unbuilt concept studies ----
+    "shaleh": (SHALEH, [
+        ("12.png", "shaleh-01"),
+        ("10.png", "shaleh-02"),
+        ("23.png", "shaleh-03"),
+        ("16.png", "shaleh-04"),
+        ("15.png", "shaleh-05"),
+        ("17.png", "shaleh-06"),
+    ]),
+    "classic": (CLASSIC, [
+        ("3.jpg",  "classic-01"),
+        ("10.jpg", "classic-02"),
+        ("4.jpg",  "classic-03"),
+        ("1.jpg",  "classic-04"),
+        ("11.jpg", "classic-05"),
+        ("2.jpg",  "classic-06"),
+    ]),
+    "vancouver": (VANCOUVER, [
+        ("Vancouver Tall_3D Model.jpg",             "vancouver-01"),
+        ("Vancouver Tall_Site Plan.jpg",            "vancouver-02"),
+        ("Vancouver Tall_Ground Level Use Plan.jpg", "vancouver-03"),
     ]),
 }
 

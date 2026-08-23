@@ -55,6 +55,66 @@ window.PROJECTS = [
   },
 
   {
+    id: "shaleh",
+    cat: ["concept", "architecture", "exterior"],
+    cover: "shaleh-01",
+    year: "Unbuilt",
+    en: {
+      title: "Waterfront Chalet",
+      place: "Coastal study",
+      meta: "Unbuilt · Massing · Coastal",
+      desc: "A study in stacked white volumes meeting water. Cantilevered slabs shade the levels below, the pool reads as an extension of the sea, and the whole composition is arranged so the long elevation is the one you see from the water. Speculative — no client, no site, no constraints except the ones we set."
+    },
+    ar: {
+      title: "شاليه على الواجهة البحرية",
+      place: "دراسة ساحلية",
+      meta: "غير منفّذ · كتل · ساحلي",
+      desc: "دراسة في كتل بيضاء متراكبة تلتقي بالماء. بلاطات كابولية تظلّل المناسيب تحتها، والمسبح يُقرأ كامتداد للبحر، والتكوين كله مرتّب ليكون الارتفاع الطولي هو ما تراه من جهة الماء. عمل تخيّلي — بلا عميل ولا موقع ولا قيود سوى ما وضعناه نحن."
+    },
+    images: ["shaleh-01", "shaleh-02", "shaleh-03", "shaleh-04", "shaleh-05", "shaleh-06"]
+  },
+
+  {
+    id: "classic",
+    cat: ["concept", "architecture", "exterior"],
+    cover: "classic-01",
+    year: "Unbuilt",
+    en: {
+      title: "Townhouse Insertion",
+      place: "Urban infill",
+      meta: "Unbuilt · Classical order · Infill",
+      desc: "A classical façade dropped into a gap between two older neighbours — the hardest kind of elevation to get right, because it has to hold its own proportions while answering to buildings it did not choose. Studied at dawn, midday and dusk to test whether the order survives every light."
+    },
+    ar: {
+      title: "إدراج بيت مدينة",
+      place: "ملء فراغ حضري",
+      meta: "غير منفّذ · نظام كلاسيكي · ملء فراغ",
+      desc: "واجهة كلاسيكية تُدرَج في فراغ بين جارين أقدم — وهي أصعب أنواع الواجهات، لأنها يجب أن تحافظ على نسبها الخاصة وتجاوب في الوقت نفسه مبانيَ لم تخترها. دُرست عند الفجر والظهيرة والغروب لاختبار ثبات النظام في كل ضوء."
+    },
+    images: ["classic-01", "classic-02", "classic-03", "classic-04", "classic-05", "classic-06"]
+  },
+
+  {
+    id: "vancouver",
+    cat: ["concept", "architecture"],
+    cover: "vancouver-01",
+    year: "Unbuilt",
+    en: {
+      title: "Vancouver Tall",
+      place: "Open competition",
+      meta: "Competition · Tower · Urban strategy",
+      desc: "An entry for an open tall-building competition: massing model, site strategy and a ground-level use plan working out how a tower meets the street. Competitions are where a studio designs without a client editing it — which is exactly why they are worth entering."
+    },
+    ar: {
+      title: "فانكوفر تول",
+      place: "مشاركة في مسابقة مفتوحة",
+      meta: "مسابقة · برج · استراتيجية عمرانية",
+      desc: "مشاركة في مسابقة مفتوحة للمباني العالية: نموذج الكتل، واستراتيجية الموقع، ومخطط استعمالات الدور الأرضي الذي يعالج كيفية التقاء البرج بالشارع. المسابقات هي المكان الذي يصمّم فيه المكتب دون تعديل من عميل — ولهذا تحديداً تستحق المشاركة."
+    },
+    images: ["vancouver-01", "vancouver-02", "vancouver-03"]
+  },
+
+  {
     id: "hollowcore",
     cat: ["architecture"],
     cover: "hollowcore-01",

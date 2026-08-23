@@ -106,6 +106,10 @@ GRADE_PROJECT_STEMS = [
     "faisal-01", "faisal-02", "faisal-03",
     "faisal-04", "faisal-05", "faisal-06",
     "hospital-01", "hospital-02",
+    "shaleh-01", "shaleh-02", "shaleh-03",
+    "shaleh-04", "shaleh-05", "shaleh-06",
+    "classic-01", "classic-02", "classic-03",
+    "classic-04", "classic-05", "classic-06",
 ]
 
 SAMPLES = [
