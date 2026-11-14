@@ -38,7 +38,6 @@
     <a href="#method" data-en="Method" data-ar="المنهج">Method</a>
     <a href="#ascent" data-en="Walkthrough" data-ar="الجولة">Walkthrough</a>
     <a href="#projects" data-en="Projects" data-ar="المشاريع">Projects</a>
-    <a href="#ledger" data-en="Ledger" data-ar="السجل">Ledger</a>
     <a href="#contact" data-en="Contact" data-ar="تواصل">Contact</a>
   </nav>
   <button class="lang" id="langBtn" type="button" aria-label="Switch language">عربي</button>
@@ -137,7 +136,7 @@
         <div><small data-en="Steel" data-ar="الحديد">Steel</small><b><span id="aSteel">0</span> t</b></div>
       </div>
       <div class="ascent-track"><span id="aBar"></span></div>
-      <p class="fine" data-en="Running totals are spread evenly over the floors to illustrate the build-up; the final figures are the model's totals." data-ar="المجاميع موزّعة بالتساوي على الأدوار للتوضيح؛ الأرقام النهائية هي مجاميع النموذج.">Running totals are spread evenly over the floors to illustrate the build-up; the final figures are the model's totals.</p>
+      <p class="fine" data-en="The actual Revit model — every slab, column, beam and RC wall — drawn bottom-up. Running totals follow the volume of the elements drawn so far, scaled to the project's published figures." data-ar="نموذج ريفيت الفعلي — كل بلاطة وعمود وكمرة وجدار خرساني — يُرسم من الأسفل إلى الأعلى. المجاميع تتبع حجم العناصر المرسومة حتى الآن، منسوبة إلى أرقام المشروع المعتمدة.">The actual Revit model — every slab, column, beam and RC wall — drawn bottom-up. Running totals follow the volume of the elements drawn so far, scaled to the project's published figures.</p>
     </div>
     <div class="ascent-view" aria-hidden="true">
       <canvas id="towerCanvas"></canvas>
@@ -172,28 +171,10 @@
   <div class="grid wrap" id="grid"></div>
 </section>
 
-<!-- ============ LEDGER ============ -->
-<section class="ledger" id="ledger">
-  <div class="sec-head wrap">
-    <p class="eyebrow"><span class="dot"></span><span data-en="04 — The ledger" data-ar="٠٤ — السجل">04 — The ledger</span></p>
-    <h2 class="sec-title" data-en="Side by side." data-ar="جنباً إلى جنب.">Side by side.</h2>
-    <div class="toolbar">
-      <div class="filters" id="ledgerMode">
-        <button class="on" data-m="concrete" data-en="Concrete m³" data-ar="خرسانة م³">Concrete m³</button>
-        <button data-m="steel" data-en="Steel t" data-ar="حديد طن">Steel t</button>
-        <button data-m="ratio" data-en="Steel per m³ (kg)" data-ar="حديد لكل م³ (كغ)">Steel per m³ (kg)</button>
-      </div>
-    </div>
-  </div>
-  <div class="wrap"><div class="bars" id="bars"></div>
-    <p class="fine" data-en="Modelled quantities from the Revit models. Projects without a published figure for the selected measure are left out." data-ar="كميات منمذجة من نماذج ريفيت. المشاريع التي لا يوجد لها رقم منشور للمقياس المختار غير معروضة.">Modelled quantities from the Revit models. Projects without a published figure for the selected measure are left out.</p>
-  </div>
-</section>
-
 <!-- ============ GALLERY ============ -->
 <section class="gallery" id="gallery">
   <div class="sec-head wrap">
-    <p class="eyebrow"><span class="dot"></span><span data-en="05 — Inside the model" data-ar="٠٥ — داخل النموذج">05 — Inside the model</span></p>
+    <p class="eyebrow"><span class="dot"></span><span data-en="04 — Inside the model" data-ar="٠٤ — داخل النموذج">04 — Inside the model</span></p>
     <h2 class="sec-title" data-en="Detail you can price from." data-ar="تفاصيل يمكن التسعير منها.">Detail you can price from.</h2>
   </div>
   <div class="reel" id="reel">
@@ -209,7 +190,7 @@
 <!-- ============ CONTACT ============ -->
 <section class="contact" id="contact">
   <div class="wrap contact-inner">
-    <p class="eyebrow"><span class="dot"></span><span data-en="06 — Start a takeoff" data-ar="٠٦ — ابدأ الحصر">06 — Start a takeoff</span></p>
+    <p class="eyebrow"><span class="dot"></span><span data-en="05 — Start a takeoff" data-ar="٠٥ — ابدأ الحصر">05 — Start a takeoff</span></p>
     <h2 class="contact-title" data-en="Send the drawings. Get the bill." data-ar="أرسل المخططات. استلم الجدول.">Send the drawings. Get the bill.</h2>
     <p class="hero-lede" data-en="DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait." data-ar="كاد أو PDF أو مسح ضوئي — أبراج وفلل وشاليهات ومبانٍ تجارية في أنحاء الكويت.">DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait.</p>
     <div class="hero-cta">
@@ -229,7 +210,9 @@
   <div class="modal-bg" data-close></div>
   <article class="modal-card">
     <button class="modal-x" data-close aria-label="Close">×</button>
-    <div class="modal-view"><canvas id="modalCanvas"></canvas></div>
+    <div class="modal-view"><canvas id="modalCanvas"></canvas>
+      <div class="m-rot"><button id="mRotL" aria-label="Rotate left">&#10226;</button><button id="mRotR" aria-label="Rotate right">&#10227;</button></div>
+    </div>
     <div class="modal-info">
       <p class="eyebrow"><span class="dot"></span><span id="mNo"></span></p>
       <h3 id="mName"></h3>

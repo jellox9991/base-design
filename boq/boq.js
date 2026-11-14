@@ -1,9 +1,9 @@
 /* ============================================================
    BASE · BOQ — behaviour
    Plain JS, no libraries. Sections:
-   1 helpers + language   2 iso building renderer   3 hero
+   1 helpers + language   2 Revit-style renderer of the real models   3 hero
    4 method stage         5 tower ascent             6 projects + modal
-   7 ledger               8 reveal / cursor / nav    9 boot
+   8 reveal / cursor / nav    9 boot
    ============================================================ */
 (function(){
 "use strict";
@@ -35,7 +35,8 @@ var L = {
   conc:{ en:"Concrete", ar:"خرسانة" }, steel:{ en:"Steel", ar:"حديد" },
   ratio:{ en:"kg / m³", ar:"كغ / م³" }, levels:{ en:"Storeys", ar:"أدوار" },
   src:{ en:"Source", ar:"المصدر" }, proj:{ en:"Project", ar:"مشروع" },
-  t:{ en:"t", ar:"طن" }, m3:{ en:"m³", ar:"م³" }, na:{ en:"not published", ar:"غير منشور" }
+  t:{ en:"t", ar:"طن" }, m3:{ en:"m³", ar:"م³" }, na:{ en:"not published", ar:"غير منشور" },
+  kasra:{ en:"Kasra plot", ar:"قسيمة كسرة" }
 };
 function l(k){ return L[k][LANG]; }
 
@@ -45,8 +46,8 @@ function applyLang(){
     var v = el.getAttribute("data-" + LANG); if(v != null) el.textContent = v;
   });
   $("#langBtn").textContent = LANG === "ar" ? "EN" : "عربي";
-  buildMarquee(); renderCards(); renderBars(); setStage(stageIdx, true);
-  updateAscent(true);
+  buildMarquee(); renderCards(); setStage(stageIdx, true);
+  asc.label = ""; updateAscent(); heroRestart();
   if(modalIdx >= 0) fillModal();
   $$(".count").forEach(function(el){ if(el._done) el.textContent = fmt(TOT[el.dataset.key]); });
 }
@@ -56,10 +57,11 @@ var TOT = { concrete:0, steel:0, projects:P.length, levels:0 };
 P.forEach(function(p){ TOT.concrete += p.concrete||0; TOT.steel += p.steel||0; TOT.levels += p.levels||0; });
 TOT.concrete = Math.round(TOT.concrete); TOT.steel = Math.round(TOT.steel);
 
-/* ---------- 2. isometric building renderer ----------
-   Draws a stack of slabs + columns in true isometric, rotated about Z.
-   o = { levels, w, d, h (storey m), built (0..levels, fractional), rot (rad),
-         cx, cy (0..1 centre in canvas), pad, glow, scan }               */
+/* ---------- 2. Revit "Realistic" renderer for the REAL models ----------
+   boq/models/<no>.js holds every slab, column, beam, footing and RC wall of
+   the project's Revit model (exported by tools/build_boq_models.py).
+   A View draws one model in true isometric, element by element, bottom-up,
+   so a build animation is just "draw a few more elements each frame".   */
 var C30 = Math.cos(Math.PI/6), S30 = Math.sin(Math.PI/6);
 
 function fitCanvas(cv){
@@ -70,146 +72,216 @@ function fitCanvas(cv){
   return { W:W, H:H, dpr:dpr };
 }
 
-function drawBuilding(cv, o){
-  var f = fitCanvas(cv), W = f.W, H = f.H, ctx = cv.getContext("2d");
+/* --- model loading --- */
+var MODELS = {}, WAIT = {};
+window.BOQ_MODEL = function(m){
+  MODELS[m.no] = prepModel(m);
+  (WAIT[m.no]||[]).forEach(function(f){ f(MODELS[m.no]); }); delete WAIT[m.no];
+};
+function getModel(no, cb){
+  if(MODELS[no]){ cb(MODELS[no]); return; }
+  if(WAIT[no]){ WAIT[no].push(cb); return; }
+  WAIT[no] = [cb];
+  var s = document.createElement("script"); s.src = "models/" + no + ".js"; s.async = true;
+  s.onerror = function(){ delete WAIT[no]; };
+  document.head.appendChild(s);
+}
+function hull2d(pts){
+  pts = pts.slice().sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+  function cr(o,a,b){ return (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0]); }
+  var lo = [], hi = [], i;
+  for(i=0;i<pts.length;i++){ while(lo.length>1 && cr(lo[lo.length-2],lo[lo.length-1],pts[i]) <= 0) lo.pop(); lo.push(pts[i]); }
+  for(i=pts.length-1;i>=0;i--){ while(hi.length>1 && cr(hi[hi.length-2],hi[hi.length-1],pts[i]) <= 0) hi.pop(); hi.push(pts[i]); }
+  return lo.slice(0,-1).concat(hi.slice(0,-1));
+}
+function prepModel(m){
+  var all = [];
+  var els = m.e.map(function(r){
+    var pts = [], cx = 0, cy = 0, i;
+    for(i=4;i<r.length;i+=2){ pts.push([r[i]/10, r[i+1]/10]); cx += r[i]/10; cy += r[i+1]/10; }
+    cx /= pts.length; cy /= pts.length;
+    var e = { k:r[0], z0:r[1]/10, z1:r[2]/10, v:r[3]/10, pts:pts, cx:cx, cy:cy };
+    if(e.z1 > 0) for(i=0;i<pts.length;i++) all.push(pts[i]);
+    return e;
+  });
+  var vol = 0; els.forEach(function(e){ vol += e.v; });
+  return { no:m.no, w:m.bb[0], d:m.bb[1], zmin:m.bb[2], zmax:m.bb[3], vol:vol, els:els,
+           lv:(m.lv||[]).map(function(l){ return [l[0]/10, l[1]]; }), hull:hull2d(all.length ? all : [[0,0],[1,0],[0,1]]) };
+}
+
+/* --- concrete texture: tinted tiles, one per shade step --- */
+var TILES = null, SHADES = 14;
+function tiles(){
+  if(TILES) return TILES;
+  var noise = document.createElement("canvas"); noise.width = noise.height = 128;
+  var nx = noise.getContext("2d"), img = nx.createImageData(128,128), d = img.data, i;
+  for(i=0;i<d.length;i+=4){
+    var px = (i/4)%128, py = Math.floor(i/4/128);
+    var n = Math.random()*26 - 13 + Math.sin(py*.09 + px*.011)*4;
+    if(Math.random() < .01) n -= 34;
+    d[i] = d[i+1] = d[i+2] = 128 + n; d[i+3] = 255;
+  }
+  nx.putImageData(img,0,0);
+  TILES = { light:[], dark:[] };
+  [["light",[208,204,196]],["dark",[150,147,141]]].forEach(function(spec){
+    for(var k=0;k<SHADES;k++){
+      var f = .5 + .55*k/(SHADES-1), c = document.createElement("canvas"); c.width = c.height = 128;
+      var x = c.getContext("2d");
+      x.fillStyle = "rgb("+Math.min(255,Math.round(spec[1][0]*f))+","+Math.min(255,Math.round(spec[1][1]*f))+","+Math.min(255,Math.round(spec[1][2]*f))+")";
+      x.fillRect(0,0,128,128);
+      x.globalAlpha = .16; x.globalCompositeOperation = "overlay"; x.drawImage(noise,0,0);
+      TILES[spec[0]].push(c);
+    }
+  });
+  return TILES;
+}
+
+/* --- a View: one model on one canvas at one angle --- */
+function View(cv, M, o){
+  this.cv = cv; this.M = M; this.o = o || {};
+  this.rot = this.o.rot == null ? -0.62 : this.o.rot;
+  this.order(); this.reset();
+}
+View.prototype.order = function(){
+  var ca = Math.cos(this.rot), sa = Math.sin(this.rot), M = this.M;
+  var keys = M.els.map(function(e, i){ return [Math.round(e.z0*2), (e.cx*ca - e.cy*sa) + (e.cx*sa + e.cy*ca), i]; });
+  keys.sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+  this.list = keys.map(function(k){ return M.els[k[2]]; });
+  this.zkey = keys.map(function(k){ return k[0]/2; });
+};
+View.prototype.reset = function(){
+  var f = fitCanvas(this.cv), W = f.W, H = f.H, ctx = this.cv.getContext("2d"), o = this.o, M = this.M;
+  this.ctx = ctx; this.dpr = f.dpr; this.W = W; this.H = H; this.i = 0; this.vol = 0;
+  var VP = this.VP = !!o.viewport;
+  var pats = this.pats = (VP ? tiles().light : tiles().dark).map(function(t){ return ctx.createPattern(t, "repeat"); });
+  var r = Math.hypot(M.w, M.d)/2;
+  var pad = o.pad == null ? .1 : o.pad;
+  var ca = this.ca = Math.cos(this.rot), sa = this.sa = Math.sin(this.rot);
+  /* fit the model's real on-screen outline at this angle, not a worst-case circle */
+  var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  M.hull.forEach(function(p){
+    var X = p[0]*ca - p[1]*sa, Y = p[0]*sa + p[1]*ca, u = (X - Y)*C30, v = (X + Y)*S30;
+    x0 = Math.min(x0, u); x1 = Math.max(x1, u);
+    y0 = Math.min(y0, v - M.zmax); y1 = Math.max(y1, v - M.zmin);
+  });
+  var s = this.s = Math.min(W*(1-2*pad)/Math.max(1, x1 - x0), H*(1-2*pad)/Math.max(1, y1 - y0)) * (o.zoom||1);
+  var ox = W*(o.cx == null ? .5 : o.cx) - s*(x0 + x1)/2, oy = H*(o.cy == null ? .5 : o.cy) - s*(y0 + y1)/2;
+  this.pr = function(x,y,z){ var X = x*ca - y*sa, Y = x*sa + y*ca; return [ox + (X - Y)*C30*s, oy + (X + Y)*S30*s - z*s]; };
+  /* camera-fixed sun, upper left (Revit default) */
+  var Lx = -.15, Ly = 1.1, Lz = 1.3, Ln = Math.hypot(Lx,Ly,Lz);
+  this.L = [Lx/Ln, Ly/Ln, Lz/Ln];
+  ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
   ctx.clearRect(0,0,W,H);
-  var hgt = o.levels * o.h;
-  var r = Math.sqrt(o.w*o.w + o.d*o.d)/2;
-  var spanX = 2*Math.SQRT2*r*C30, spanY = 2*Math.SQRT2*r*S30 + hgt;
-  var pad = (o.pad==null ? .12 : o.pad);
-  var s = Math.min(W*(1-2*pad)/spanX, H*(1-2*pad)/spanY) * (o.zoom||1);
-  var ox = W*(o.cx==null?.5:o.cx), oy = H*(o.cy==null?.5:o.cy) + (hgt*s)/2;
-  var ca = Math.cos(o.rot||0), sa = Math.sin(o.rot||0);
-  function pr(x,y,z){
-    var X = x*ca - y*sa, Y = x*sa + y*ca;
-    return [ox + (X - Y)*C30*s, oy + (X + Y)*S30*s - z*s];
+  if(VP){
+    var bg = ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,"#b9d0e4"); bg.addColorStop(.5,"#e4edf4"); bg.addColorStop(.64,"#f4f2ed"); bg.addColorStop(1,"#d9d4c9");
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  } else {
+    var g0 = this.pr(0,0,0), gr = ctx.createRadialGradient(g0[0], g0[1], 0, g0[0], g0[1], r*s*1.8);
+    gr.addColorStop(0, "rgba(249,1,48,.13)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(g0[0], g0[1], r*s*2.1*C30, r*s*2.1*S30, 0, 0, Math.PI*2); ctx.fill();
   }
-  var hw = o.w/2, hd = o.d/2;
-  var corners = [[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]];
-  var lw = Math.max(1, f.dpr*.8);
-
-  /* ground: hairline plate + soft shadow */
-  ctx.save();
-  var g0 = pr(0,0,0);
-  var grad = ctx.createRadialGradient(g0[0], g0[1], 0, g0[0], g0[1], r*s*1.9);
-  grad.addColorStop(0, o.glow ? "rgba(249,1,48,.16)" : "rgba(255,255,255,.06)");
-  grad.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.ellipse(g0[0], g0[1], r*s*1.9*C30*1.15, r*s*1.9*S30*1.15, 0, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,.07)"; ctx.lineWidth = lw;
-  var m = 1.35, k;
-  for(k=-4;k<=4;k++){
-    var a1 = pr(-hw*m, k*hd*m/4, 0), a2 = pr(hw*m, k*hd*m/4, 0);
-    var b1 = pr(k*hw*m/4, -hd*m, 0), b2 = pr(k*hw*m/4, hd*m, 0);
-    ctx.beginPath(); ctx.moveTo(a1[0],a1[1]); ctx.lineTo(a2[0],a2[1]); ctx.moveTo(b1[0],b1[1]); ctx.lineTo(b2[0],b2[1]); ctx.stroke();
-  }
+  if(!o.noShadow) this.shadow(M.zmax);
+  if(VP) this.chrome();
+};
+View.prototype.shadow = function(h){
+  var ctx = this.ctx, L = this.L, ca = this.ca, sa = this.sa, pr = this.pr;
+  var sl = Math.hypot(L[0],L[1]), SX = -L[0]/sl, SY = -L[1]/sl;
+  var wx = SX*ca + SY*sa, wy = -SX*sa + SY*ca, len = Math.max(2, h)*.5, pts = [];
+  this.M.hull.forEach(function(p){ pts.push(pr(p[0],p[1],0)); pts.push(pr(p[0]+wx*len, p[1]+wy*len, 0)); });
+  var hp = hull2d(pts);
+  ctx.save(); ctx.filter = "blur(" + Math.round(5*this.dpr) + "px)";
+  ctx.fillStyle = this.VP ? "rgba(70,62,50,.26)" : "rgba(0,0,0,.6)";
+  ctx.beginPath(); hp.forEach(function(p,i){ i ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]); }); ctx.closePath(); ctx.fill();
   ctx.restore();
-
-  /* column grid */
-  var nx = Math.max(2, Math.round(o.w/7)+1), ny = Math.max(2, Math.round(o.d/7)+1);
-  var cols = [];
-  for(var i=0;i<nx;i++) for(var j=0;j<ny;j++){
-    var edge = (i===0||j===0||i===nx-1||j===ny-1);
-    cols.push([-hw + o.w*i/(nx-1), -hd + o.d*j/(ny-1), edge]);
+};
+View.prototype.el = function(e){
+  var ctx = this.ctx, pr = this.pr, ca = this.ca, sa = this.sa, L = this.L, pats = this.pats, pts = e.pts, n = pts.length, k;
+  ctx.lineWidth = Math.max(.6, this.dpr*.55); ctx.lineJoin = "round";
+  ctx.strokeStyle = this.VP ? "rgba(45,40,32,.22)" : "rgba(0,0,0,.42)";
+  var dim = (e.k === 3 || e.z1 <= 0) ? .9 : 1;
+  for(k=0;k<n;k++){
+    var A = pts[k], B = pts[(k+1)%n], nx = B[1]-A[1], ny = -(B[0]-A[0]), ln = Math.hypot(nx,ny);
+    if(!ln) continue; nx /= ln; ny /= ln;
+    var NX = nx*ca - ny*sa, NY = nx*sa + ny*ca;
+    if(NX + NY <= 0) continue;
+    var lit = .5 + .5*Math.max(0, NX*L[0] + NY*L[1]);
+    var a = pr(A[0],A[1],e.z0), b = pr(B[0],B[1],e.z0), c = pr(B[0],B[1],e.z1), d = pr(A[0],A[1],e.z1);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.lineTo(c[0],c[1]); ctx.lineTo(d[0],d[1]); ctx.closePath();
+    ctx.fillStyle = pats[Math.max(0, Math.min(SHADES-1, Math.round(((lit*dim) - .5)/.55*(SHADES-1))))]; ctx.fill(); ctx.stroke();
   }
-  /* order columns back-to-front for the current rotation */
-  cols.sort(function(A,B){ return (A[0]*ca - A[1]*sa + A[0]*sa + A[1]*ca) - (B[0]*ca - B[1]*sa + B[0]*sa + B[1]*ca); });
-
-  /* which side faces show */
-  var faces = [];
+  var top = .5 + .5*L[2];
+  ctx.beginPath();
+  for(k=0;k<n;k++){ var p = pr(pts[k][0], pts[k][1], e.z1); k ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]); }
+  ctx.closePath();
+  ctx.fillStyle = pats[Math.max(0, Math.min(SHADES-1, Math.round(((top*dim) - .5)/.55*(SHADES-1))))]; ctx.fill(); ctx.stroke();
+};
+View.prototype.drawTo = function(n){
+  n = Math.min(n, this.list.length);
+  for(; this.i < n; this.i++){ var e = this.list[this.i]; this.el(e); this.vol += e.v; }
+  if(this.VP && this.i >= this.list.length && !this.chromed){ this.chromed = true; this.chrome(); }
+};
+View.prototype.done = function(){ return this.i >= this.list.length; };
+View.prototype.indexAtZ = function(z){              /* elements with z0 <= z */
+  var lo = 0, hi = this.zkey.length;
+  while(lo < hi){ var mid = (lo+hi) >> 1; if(this.zkey[mid] <= z) lo = mid+1; else hi = mid; }
+  return lo;
+};
+/* ViewCube + {3D} view name */
+View.prototype.chrome = function(){
+  var ctx = this.ctx, dpr = this.dpr, W = this.W, H = this.H, ca = this.ca, sa = this.sa;
+  var R = Math.min(Math.min(W,H)*.07, 19*dpr), cx = W - R*2.3, cy = R*2.2;
+  function p(x,y,z){ var X = x*ca - y*sa, Y = x*sa + y*ca; return [cx + (X - Y)*C30*R, cy + (X + Y)*S30*R - z*R]; }
+  ctx.save();
+  ctx.lineWidth = Math.max(1, dpr*.7); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.strokeStyle = "rgba(90,105,125,.5)";
+  ctx.beginPath(); ctx.ellipse(cx, cy + R*.8, R*1.65, R*.82, 0, 0, Math.PI*2); ctx.stroke();
+  var nP = p(0,-1.8,-.8);
+  ctx.fillStyle = "rgba(60,75,95,.9)"; ctx.font = "600 " + Math.round(R*.5) + "px Outfit, sans-serif"; ctx.fillText("N", nP[0], nP[1]);
+  var c = [[-1,-1],[1,-1],[1,1],[-1,1]], LBL = ["BACK","RIGHT","FRONT","LEFT"], k;
+  ctx.strokeStyle = "rgba(95,110,130,.9)";
   for(k=0;k<4;k++){
-    var A = corners[k], B = corners[(k+1)%4];
-    var nxv = (B[1]-A[1]), nyv = -(B[0]-A[0]);              // outward normal (ccw)
-    var NX = nxv*ca - nyv*sa, NY = nxv*sa + nyv*ca;
-    if(NX + NY > 0) faces.push([A,B, (NX - NY)]);
+    var A = c[k], B = c[(k+1)%4], nx = B[1]-A[1], ny = -(B[0]-A[0]);
+    var NX = nx*ca - ny*sa, NY = nx*sa + ny*ca; if(NX + NY <= 0) continue;
+    var q = [p(A[0]*.8,A[1]*.8,-.8),p(B[0]*.8,B[1]*.8,-.8),p(B[0]*.8,B[1]*.8,.8),p(A[0]*.8,A[1]*.8,.8)];
+    ctx.fillStyle = (NX - NY) > 0 ? "#eef1f4" : "#e0e5ea";
+    ctx.beginPath(); q.forEach(function(pt,i){ i ? ctx.lineTo(pt[0],pt[1]) : ctx.moveTo(pt[0],pt[1]); }); ctx.closePath(); ctx.fill(); ctx.stroke();
+    var mid = p((A[0]+B[0])*.4,(A[1]+B[1])*.4,0), faceW = Math.abs(q[1][0] - q[0][0]);
+    ctx.font = Math.max(6*dpr, Math.round(R*.25)) + "px Outfit, sans-serif";
+    if(ctx.measureText(LBL[k]).width < faceW*.9){ ctx.fillStyle = "rgba(55,68,86,.85)"; ctx.fillText(LBL[k], mid[0], mid[1]); }
   }
+  var top = c.map(function(a){ return p(a[0]*.8,a[1]*.8,.8); });
+  ctx.fillStyle = "#f8fafb"; ctx.beginPath(); top.forEach(function(pt,i){ i ? ctx.lineTo(pt[0],pt[1]) : ctx.moveTo(pt[0],pt[1]); }); ctx.closePath(); ctx.fill(); ctx.stroke();
+  var tc = p(0,0,.8); ctx.fillStyle = "rgba(55,68,86,.85)"; ctx.fillText("TOP", tc[0], tc[1]);
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "rgba(50,60,75,.8)"; ctx.font = (10.5*dpr) + "px Outfit, sans-serif";
+  ctx.fillText("{3D}  ·  Realistic", 10*dpr, H - 10*dpr);
+  ctx.restore();
+};
 
-  var built = Math.max(0, Math.min(o.levels, o.built));
-  var full = Math.floor(built), frac = built - full;
-  var slabT = Math.max(.3, o.h*.09);
-
-  function slab(z, alpha, hot){
-    var top = corners.map(function(c){ return pr(c[0],c[1],z); });
-    faces.forEach(function(fc){
-      var a = pr(fc[0][0],fc[0][1],z), b = pr(fc[1][0],fc[1][1],z), c = pr(fc[1][0],fc[1][1],z-slabT), d = pr(fc[0][0],fc[0][1],z-slabT);
-      ctx.fillStyle = "rgba(" + (fc[2] > 0 ? "58,58,58" : "34,34,34") + "," + alpha + ")";
-      ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.lineTo(c[0],c[1]); ctx.lineTo(d[0],d[1]); ctx.closePath(); ctx.fill();
-    });
-    ctx.fillStyle = "rgba(22,22,22," + (alpha*.92) + ")";
-    ctx.beginPath(); top.forEach(function(p,ix){ ix ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]); }); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = hot ? "rgba(249,1,48," + (.9*alpha) + ")" : "rgba(255,255,255," + (.55*alpha) + ")";
-    ctx.lineWidth = lw; ctx.stroke();
-  }
-  function columns(z0, z1, alpha){
-    ctx.lineWidth = lw*1.6;
-    cols.forEach(function(c){
-      var a = pr(c[0],c[1],z0), b = pr(c[0],c[1],z1);
-      ctx.strokeStyle = "rgba(255,255,255," + ((c[2] ? .42 : .16)*alpha) + ")";
-      ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
-    });
-  }
-  function mesh(z, amt){
-    ctx.strokeStyle = "rgba(249,1,48,.75)"; ctx.lineWidth = lw;
-    var n = Math.max(6, Math.round(o.w/3)), mm = Math.max(4, Math.round(o.d/3)), q;
-    ctx.beginPath();
-    for(q=0;q<=n;q++){
-      var x = -hw + o.w*q/n, p1 = pr(x,-hd,z), p2 = pr(x,-hd + o.d*Math.min(1,amt*1.6),z);
-      ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]);
-    }
-    for(q=0;q<=mm;q++){
-      var y = -hd + o.d*q/mm, p3 = pr(-hw,y,z), p4 = pr(-hw + o.w*Math.max(0,Math.min(1,amt*1.6-.4)),y,z);
-      ctx.moveTo(p3[0],p3[1]); ctx.lineTo(p4[0],p4[1]);
-    }
-    ctx.stroke();
-  }
-
-  /* raft */
-  slab(0, built > 0 ? 1 : .35, false);
-  for(var lv=0; lv<full; lv++){
-    columns(lv*o.h, (lv+1)*o.h, 1);
-    slab((lv+1)*o.h, 1, false);
-  }
-  if(frac > 0 && full < o.levels){
-    var z0 = full*o.h, zc = z0 + o.h*Math.min(1, frac*2);
-    columns(z0, zc, 1);
-    if(frac > .35) mesh(z0 + o.h, (frac-.35)/.4);
-    if(frac > .7) slab(z0 + o.h, (frac-.7)/.3, true);
-  }
-  /* ghost of the unbuilt height */
-  if(o.ghost && built < o.levels){
-    ctx.setLineDash([3*f.dpr, 5*f.dpr]); ctx.strokeStyle = "rgba(255,255,255,.12)"; ctx.lineWidth = lw;
-    corners.forEach(function(c){
-      var a = pr(c[0],c[1], Math.ceil(built)*o.h), b = pr(c[0],c[1], hgt);
-      ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
-    });
-    var tp = corners.map(function(c){ return pr(c[0],c[1],hgt); });
-    ctx.beginPath(); tp.forEach(function(p,ix){ ix ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]); }); ctx.closePath(); ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  /* scan line at the working level */
-  if(o.scan && built > 0 && built < o.levels){
-    var zs = built*o.h, sp = corners.map(function(c){ return pr(c[0]*1.25,c[1]*1.25,zs); });
-    ctx.strokeStyle = "rgba(249,1,48,.5)"; ctx.lineWidth = lw;
-    ctx.beginPath(); sp.forEach(function(p,ix){ ix ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1]); }); ctx.closePath(); ctx.stroke();
-  }
-  return { pr:pr, s:s };
-}
-
-function storeyH(p){ return p.kind === "tower" ? 3.4 : (p.kind === "commercial" ? 4.6 : 3.8); }
-
-/* ---------- 3. hero ---------- */
-var hero = { cv:$("#heroCanvas"), t0:0, visible:true };
-var HERO_P = P[0];
+/* ---------- 3. hero — the real Jabriya tower building itself ---------- */
+var hero = { cv:$("#heroCanvas"), visible:true, view:null, phase:"build", t:0, n:0, rots:[-0.62,-0.98,-0.3] };
+var HERO_NO = "019";
 function heroFrame(now){
-  if(!hero.t0) hero.t0 = now;
-  var el = (now - hero.t0)/1000;
-  var cycle = 16, ph = (el % cycle)/cycle;                     // build 0-.7, hold, fade
-  var built = REDUCED ? HERO_P.levels : HERO_P.levels * Math.min(1, ph/.68);
+  var M = MODELS[HERO_NO]; if(!M) return;
   var mobile = window.innerWidth < 760;
-  drawBuilding(hero.cv, { levels:HERO_P.levels, w:34, d:24, h:3.4, built:built,
-    rot: -0.35 + el*0.05, cx: mobile ? .66 : (LANG === "ar" ? .28 : .72), cy:.53, pad: mobile ? .14 : .09, glow:true, scan:true, ghost:true });
-  hero.cv.style.opacity = ph > .94 ? String(Math.max(.15, 1 - (ph-.94)/.06*.85)) : "1";
+  if(!hero.view){
+    hero.view = new View(hero.cv, M, { rot:hero.rots[hero.n % hero.rots.length], cx: mobile ? .66 : (LANG === "ar" ? .28 : .72),
+      cy:.52, pad: mobile ? .12 : .07 });
+    hero.phase = "build"; hero.t = now; hero.cv.style.opacity = "1";
+  }
+  var v = hero.view;
+  if(REDUCED){ if(!v.done()) v.drawTo(Infinity); return; }
+  if(hero.phase === "build"){
+    v.drawTo(v.i + Math.max(4, Math.ceil(v.list.length/170)));
+    if(v.done()){ hero.phase = "hold"; hero.t = now; }
+  } else if(hero.phase === "hold" && now - hero.t > 4200){
+    hero.phase = "fade"; hero.t = now; hero.cv.style.opacity = "0";
+  } else if(hero.phase === "fade" && now - hero.t > 750){
+    hero.n++; hero.view = null;
+  }
 }
+function heroRestart(){ hero.view = null; }
 
 /* ---------- 4. method stage (SVG) ---------- */
 var stageIdx = 0;
@@ -320,43 +392,42 @@ function setStage(n, force){
   $$(".step").forEach(function(s){ s.classList.toggle("on", +s.dataset.step === n); });
 }
 
-/* ---------- 5. tower ascent ---------- */
-var asc = { sec:$("#ascent"), cv:$("#towerCanvas"), p:0, shown:-1, visible:false };
-var ASC_P = P[0];   // the tallest — Al-Riggae
-function levelName(i, n){
-  var ar = LANG === "ar";
-  if(i <= 0) return ar ? "اللبشة" : "Raft";
-  if(i === 1) return ar ? "السرداب" : "Basement";
-  if(i === 2) return ar ? "الأرضي" : "Ground";
-  if(i >= n) return ar ? ("الدور " + fmt(n-2) + " · السطح") : ((n-2) + "F · Roof");
-  return ar ? ("الدور " + fmt(i-2)) : ((i-2) + "F");
-}
+/* ---------- 5. tower ascent — the real Al-Riggae model, cut by scroll ---------- */
+var asc = { sec:$("#ascent"), cv:$("#towerCanvas"), p:0, visible:false, view:null, cut:-1e9, label:"" };
+var ASC_P = P.filter(function(p){ return p.no === "021"; })[0] || P[0];
 var CAP_P = /[?&]p=([\d.]+)/.exec(location.search);
 function ascProgress(){
   if(CAPTURE && CAP_P) return Math.min(1, +CAP_P[1]);
   var r = asc.sec.getBoundingClientRect(), span = r.height - window.innerHeight;
   return Math.max(0, Math.min(1, -r.top / Math.max(1, span)));
 }
-function updateAscent(force){
-  var p = asc.p, n = ASC_P.levels, built = p*n*1.04;
-  var lvl = Math.min(n, Math.floor(built));
-  if(force || lvl !== asc.shown){
-    asc.shown = lvl;
-    $("#aLevel").textContent = levelName(lvl, n);
-  }
-  var q = Math.min(1, built/n);
+function prettyLevel(name){
+  var n = String(name || "").replace(/^RG\s*/i, "").replace(/\b(level|lvl)\b/ig, "").trim();
+  return n ? n.toUpperCase() : "—";
+}
+function updateAscent(){
+  var v = asc.view, M = MODELS[ASC_P.no];
+  if(!v || !M){ return; }
+  var q = M.vol ? Math.min(1, v.vol / M.vol) : 0;
+  var lv = M.lv.filter(function(l){ return l[0] <= asc.cut + .05; });
+  var name = lv.length ? prettyLevel(lv[lv.length-1][1]) : (LANG === "ar" ? "الأساسات" : "FOUNDATIONS");
+  if(name !== asc.label){ asc.label = name; $("#aLevel").textContent = name; }
   $("#aConc").textContent = fmt(Math.round(ASC_P.concrete*q));
   $("#aSteel").textContent = fmt(ASC_P.steel*q, 1);
   $("#aBar").style.width = (q*100).toFixed(2) + "%";
 }
-function ascentFrame(now){
-  var target = ascProgress();
-  asc.p += (target - asc.p) * (REDUCED ? 1 : .12);
-  var n = ASC_P.levels;
+function ascentFrame(){
+  var M = MODELS[ASC_P.no]; if(!M) return;
   var mobile = window.innerWidth < 860;
-  drawBuilding(asc.cv, { levels:n, w:ASC_P.w, d:ASC_P.d, h:3.4, built:Math.min(n, asc.p*n*1.04),
-    rot: -0.6 + asc.p*1.1 + Math.sin(now/4000)*.03, cx:.5, cy:.5, pad: mobile ? .06 : .05, glow:true, scan:true, ghost:true });
-  updateAscent(false);
+  if(!asc.view) asc.view = new View(asc.cv, M, { rot:-0.62, cx:.5, cy:.5, pad: mobile ? .05 : .04 });
+  var target = ascProgress();
+  asc.p += (target - asc.p) * (REDUCED ? 1 : .14);
+  var v = asc.view, cut = M.zmin + (M.zmax - M.zmin + .5) * Math.min(1, asc.p*1.05);
+  asc.cut = cut;
+  var idx = v.indexAtZ(cut);
+  if(idx < v.i - 2){ v.reset(); }                     /* scrolled back: redraw up to the cut */
+  v.drawTo(Math.min(idx, v.i + (REDUCED || v.i === 0 ? 1e9 : 900)));
+  updateAscent();
 }
 
 /* ---------- 6. projects + modal ---------- */
@@ -372,6 +443,7 @@ function sorted(){
   });
   return a;
 }
+function floorsOf(p){ return p.floors ? p.floors[LANG] || p.floors.en : (fmt(p.levels) + " " + l("levels")); }
 var cardArt = [];
 function renderCards(){
   var grid = $("#grid");
@@ -379,19 +451,17 @@ function renderCards(){
   grid.innerHTML = list.map(function(p, i){
     var tx = t(p);
     return '<article class="card" data-i="'+i+'" tabindex="0" role="button" aria-label="'+tx.name+'">'+
-      '<div class="card-top"><span><b>'+p.no+'</b> · '+KIND[p.kind][LANG]+'</span><span>'+p.source+'</span></div>'+
+      '<div class="card-top"><span><b>'+p.no+'</b> · '+KIND[p.kind][LANG]+(p.kasra ? ' · '+l("kasra") : '')+'</span><span>'+p.source+'</span></div>'+
       '<span class="card-arrow" aria-hidden="true">'+(LANG==="ar"?"↖":"↗")+'</span>'+
       '<div class="card-art"><canvas></canvas></div>'+
-      '<h3>'+tx.name+'</h3><p class="place">'+tx.place+' · '+fmt(p.levels)+' '+l("levels")+'</p>'+
+      '<h3>'+tx.name+'</h3><p class="place">'+tx.place+' · '+floorsOf(p)+'</p>'+
       '<div class="card-q">'+
         '<div><small>'+l("conc")+'</small>'+(p.concrete!=null ? '<b>'+fmt(Math.round(p.concrete))+'</b><em>'+l("m3")+'</em>' : '<b class="na">'+l("na")+'</b>')+'</div>'+
         '<div><small>'+l("steel")+'</small>'+(p.steel!=null ? '<b>'+fmt(p.steel,1)+'</b><em>'+l("t")+'</em>' : '<b class="na">'+l("na")+'</b>')+'</div>'+
       '</div></article>';
   }).join("");
   cardArt = $$(".card", grid).map(function(el, i){
-    var c = { el:el, cv:$("canvas", el), p:list[i], built:0, target:0, rot:-0.5 + (i%3)*.15, hover:false, dirty:true };
-    el.addEventListener("mouseenter", function(){ c.hover = true; });
-    el.addEventListener("mouseleave", function(){ c.hover = false; });
+    var c = { el:el, cv:$("canvas", el), p:list[i], view:null, inview:false };
     el.addEventListener("pointermove", function(e){
       var r = el.getBoundingClientRect();
       el.style.setProperty("--mx", (e.clientX - r.left) + "px"); el.style.setProperty("--my", (e.clientY - r.top) + "px");
@@ -403,36 +473,36 @@ function renderCards(){
   });
 }
 function cardsFrame(){
+  var budget = 2400;                                  /* elements per frame across all cards */
   cardArt.forEach(function(c){
-    if(!c.inview) return;
-    var moving = false;
-    if(REDUCED && c.target) c.built = c.target;
-    if(c.built < c.target - .01){ c.built += (c.target - c.built)*.06 + .02; moving = true; }
-    if(c.hover){ c.rot += .012; moving = true; }
-    if(moving || c.dirty){
-      c.dirty = false;
-      drawBuilding(c.cv, { levels:c.p.levels, w:c.p.w, d:c.p.d, h:storeyH(c.p), built:Math.min(c.built, c.p.levels),
-        rot:c.rot, cx:.5, cy:.52, pad:.1, glow:c.hover, ghost:true });
+    if(!c.inview || budget <= 0) return;
+    if(!c.view){
+      var M = MODELS[c.p.no];
+      if(!M){ getModel(c.p.no, function(){}); return; }
+      c.view = new View(c.cv, M, { rot:-0.62, viewport:true, cx:.47, cy:.54, pad:.1 });
     }
+    if(c.view.done()) return;
+    var step = REDUCED ? 1e9 : Math.max(6, Math.ceil(c.view.list.length/55));
+    var before = c.view.i; c.view.drawTo(c.view.i + step); budget -= c.view.i - before;
   });
 }
 
-var modalIdx = -1, modal = { el:$("#modal"), cv:$("#modalCanvas"), built:0, rot:-.5, t0:0 };
+var modalIdx = -1, modal = { el:$("#modal"), cv:$("#modalCanvas"), view:null, rot:-0.62 };
 function openModal(i){
-  modalIdx = i; modal.built = 0; modal.rot = -.7; fillModal();
+  modalIdx = i; modal.view = null; modal.rot = -0.62; fillModal();
   modal.el.classList.add("open"); modal.el.setAttribute("aria-hidden","false");
   document.body.style.overflow = "hidden";
   setTimeout(function(){ $(".modal-x").focus(); }, 50);
 }
 function closeModal(){
   modal.el.classList.remove("open"); modal.el.setAttribute("aria-hidden","true");
-  document.body.style.overflow = ""; var c = cardArt[modalIdx]; modalIdx = -1;
+  document.body.style.overflow = ""; var c = cardArt[modalIdx]; modalIdx = -1; modal.view = null;
   if(c) c.el.focus();
 }
 function fillModal(){
   var p = list[modalIdx]; if(!p) return; var tx = t(p);
-  $("#mNo").textContent = l("proj") + " " + p.no + " · " + KIND[p.kind][LANG] + " · " + l("src") + ": " + p.source;
-  $("#mName").textContent = tx.name; $("#mPlace").textContent = tx.place;
+  $("#mNo").textContent = l("proj") + " " + p.no + " · " + KIND[p.kind][LANG] + (p.kasra ? " · " + l("kasra") : "") + " · " + l("src") + ": " + p.source;
+  $("#mName").textContent = tx.name; $("#mPlace").textContent = tx.place + " · " + floorsOf(p);
   $("#mScope").textContent = tx.scope; $("#mNote").textContent = tx.note;
   var ratio = (p.concrete && p.steel) ? fmt(Math.round(p.steel*1000/p.concrete)) : "—";
   $("#mStats").innerHTML =
@@ -442,42 +512,14 @@ function fillModal(){
 }
 function modalFrame(){
   if(modalIdx < 0) return;
-  var p = list[modalIdx];
-  modal.built += (p.levels - modal.built)*.04 + .01;
-  modal.rot += .004;
-  drawBuilding(modal.cv, { levels:p.levels, w:p.w, d:p.d, h:storeyH(p), built:Math.min(modal.built, p.levels), rot:modal.rot, cx:.5, cy:.5, pad:.12, glow:true, scan:true, ghost:true });
+  var p = list[modalIdx], M = MODELS[p.no];
+  if(!M){ getModel(p.no, function(){}); return; }
+  if(!modal.view) modal.view = new View(modal.cv, M, { rot:modal.rot, viewport:true, cx:.5, cy:.52, pad:.1 });
+  var v = modal.view;
+  if(!v.done()) v.drawTo(v.i + (REDUCED ? 1e9 : Math.max(8, Math.ceil(v.list.length/70))));
 }
-function stepModal(d){ if(!list.length) return; modalIdx = (modalIdx + d + list.length) % list.length; modal.built = 0; fillModal(); }
-
-/* ---------- 7. ledger ---------- */
-var ledgerMode = "concrete", ledgerShown = false;
-function renderBars(){
-  var rows = P.map(function(p){
-    var v = ledgerMode === "ratio" ? ((p.concrete && p.steel) ? p.steel*1000/p.concrete : null) : p[ledgerMode];
-    return { p:p, v:v };
-  }).filter(function(r){ return r.v != null; }).sort(function(a,b){ return b.v - a.v; });
-  var max = rows.length ? rows[0].v : 1;
-  var el = $("#bars");
-  el.innerHTML = rows.map(function(r){
-    var dp = ledgerMode === "steel" ? 1 : 0;
-    return '<div class="bar '+r.p.kind+'" data-no="'+r.p.no+'"><span class="bn"><b>'+r.p.no+'</b>'+t(r.p).name+'</span>'+
-      '<span class="bt"><i data-w="'+(r.v/max*100).toFixed(2)+'"></i></span><span class="bv">'+fmt(r.v, dp)+'</span></div>';
-  }).join("");
-  $$(".bar", el).forEach(function(b){
-    b.addEventListener("click", function(){
-      filter = "all"; $$("#filters button").forEach(function(x){ x.classList.toggle("on", x.dataset.f === "all"); });
-      renderCards();
-      var i = list.findIndex(function(p){ return p.no === b.dataset.no; }); if(i >= 0) openModal(i);
-    });
-  });
-  if(ledgerShown) growBars();
-}
-function growBars(){
-  $$("#bars i").forEach(function(i, n){
-    i.style.width = "0";
-    setTimeout(function(){ i.style.width = i.dataset.w + "%"; }, 30 + n*45);
-  });
-}
+function rotateModal(d){ modal.rot += d*Math.PI/4; modal.view = null; }
+function stepModal(d){ if(!list.length) return; modalIdx = (modalIdx + d + list.length) % list.length; modal.view = null; fillModal(); }
 
 /* ---------- 8. reveal / cursor / nav / marquee ---------- */
 var io = new IntersectionObserver(function(ents){
@@ -485,7 +527,7 @@ var io = new IntersectionObserver(function(ents){
     var el = e.target;
     if(el.classList.contains("card")){
       var c = cardArt.filter(function(x){ return x.el === el; })[0];
-      if(c){ c.inview = e.isIntersecting; c.dirty = true; if(e.isIntersecting) c.target = c.p.levels; }
+      if(c){ c.inview = e.isIntersecting; if(c.inview) getModel(c.p.no, function(){}); }
       if(e.isIntersecting){ setTimeout(function(){ el.classList.add("in"); }, (+el.dataset.i % 3)*90); }
       return;
     }
@@ -525,7 +567,7 @@ function initReel(){
   $$("figure", r).forEach(function(f){ io.observe(f); });
 }
 
-var sections = ["method","ascent","projects","ledger","contact"].map(function(id){ return document.getElementById(id); });
+var sections = ["method","ascent","projects","contact"].map(function(id){ return document.getElementById(id); });
 function onScroll(){
   var y = window.scrollY, H = document.documentElement.scrollHeight - innerHeight;
   $("#progress").style.transform = "scaleX(" + (H > 0 ? y/H : 0) + ")";
@@ -539,8 +581,6 @@ function onScroll(){
   $$(".nav-links a").forEach(function(a){ a.classList.toggle("cur", a.getAttribute("href") === "#" + cur); });
   var r = asc.sec.getBoundingClientRect(); asc.visible = r.bottom > 0 && r.top < innerHeight;
   var hr = hero.cv.getBoundingClientRect(); hero.visible = hr.bottom > 0;
-  var lr = $("#bars").getBoundingClientRect();
-  if(!ledgerShown && lr.top < innerHeight*.85){ ledgerShown = true; growBars(); }
 }
 
 /* ---------- 9. boot ---------- */
@@ -563,14 +603,11 @@ function wire(){
     });
   });
   $("#sort").addEventListener("change", function(e){ sortKey = e.target.value; renderCards(); });
-  $$("#ledgerMode button").forEach(function(b){
-    b.addEventListener("click", function(){
-      ledgerMode = b.dataset.m; $$("#ledgerMode button").forEach(function(x){ x.classList.toggle("on", x === b); }); renderBars();
-    });
-  });
   $$("[data-close]").forEach(function(b){ b.addEventListener("click", closeModal); });
   $("#mPrev").addEventListener("click", function(){ stepModal(-1); });
   $("#mNext").addEventListener("click", function(){ stepModal(1); });
+  $("#mRotL").addEventListener("click", function(){ rotateModal(-1); });
+  $("#mRotR").addEventListener("click", function(){ rotateModal(1); });
   document.addEventListener("keydown", function(e){
     if(modalIdx < 0) return;
     if(e.key === "Escape") closeModal();
@@ -578,13 +615,18 @@ function wire(){
     if(e.key === "ArrowLeft") stepModal(LANG === "ar" ? 1 : -1);
   });
   window.addEventListener("scroll", onScroll, { passive:true });
-  window.addEventListener("resize", function(){ cardArt.forEach(function(c){ c.dirty = true; }); onScroll(); });
+  var rz = 0;
+  window.addEventListener("resize", function(){
+    clearTimeout(rz);
+    rz = setTimeout(function(){ cardArt.forEach(function(c){ c.view = null; }); asc.view = null; hero.view = null; modal.view = null; onScroll(); }, 200);
+  });
   $$(".sec-head, .method-stage, .contact-inner").forEach(function(el){ el.setAttribute("data-reveal",""); io.observe(el); });
 }
 
 function boot(){
   $("#yr").textContent = new Date().getFullYear();
   buildStage();
+  getModel(HERO_NO, function(){}); getModel(ASC_P.no, function(){});
   wire();
   applyLang();
   initCursor(); initReel(); onScroll();
@@ -592,7 +634,7 @@ function boot(){
   var qy = /[?&]y=(\d+)/.exec(location.search), qm = /[?&]m=(\d+)/.exec(location.search);
   if(CAPTURE && qm) setTimeout(function(){ openModal(+qm[1]); }, 300);
   if(qy) setTimeout(function(){ root.style.scrollBehavior = "auto"; window.scrollTo(0, +qy[1]); onScroll();
-    document.body.setAttribute("data-offsets", ["method","ascent","projects","ledger","gallery","contact"].map(function(id){
+    document.body.setAttribute("data-offsets", ["method","ascent","projects","gallery","contact"].map(function(id){
       return id + ":" + Math.round(document.getElementById(id).getBoundingClientRect().top + scrollY); }).join(" ")); }, 400);
   requestAnimationFrame(frame);
   /* loader: fill bar, then reveal */
