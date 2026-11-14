@@ -478,7 +478,7 @@ function updateAscent(){
   var v = asc.view, M = MODELS[ASC_P.no];
   if(!v || !M){ return; }
   var q = M.vol ? Math.min(1, v.vol / M.vol) : 0;
-  var lv = M.lv.filter(function(l){ return l[0] <= asc.cut + .05; });
+  var lv = M.lv.filter(function(l){ return !/^\s*level\s*\d+\s*$/i.test(l[1]) && l[0] <= asc.cut + .05; });
   var name = lv.length ? prettyLevel(lv[lv.length-1][1]) : (LANG === "ar" ? "الأساسات" : "FOUNDATIONS");
   if(name !== asc.label){ asc.label = name; $("#aLevel").textContent = name; }
   $("#aConc").textContent = fmt(Math.round(ASC_P.concrete*q));
