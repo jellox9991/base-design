@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BASE BOQ — Model-Based Quantities | Kuwait</title>
+<meta name="description" content="BASE BOQ: concrete, reinforcement and blockwork quantities measured from coordinated Revit models — towers, villas, chalets and commercial work across Kuwait.">
+<meta name="theme-color" content="#000000">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BASE BOQ — Model-Based Quantities">
+<meta property="og:description" content="Every cubic metre and every bar, measured from the model. Towers, villas and chalets across Kuwait.">
+<meta property="og:url" content="https://jellox9991.github.io/base-design/boq/">
+<meta property="og:image" content="https://jellox9991.github.io/base-design/assets/img/brand/og-cover.jpg">
+<link rel="canonical" href="https://jellox9991.github.io/base-design/boq/">
+<link rel="icon" href="../assets/img/brand/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@200;300;400;500&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="boq.css">
+</head>
+<body>
+
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-mark"><img src="../assets/img/brand/logo-mark.png" alt=""></div>
+  <div class="loader-bar"><span></span></div>
+  <div class="loader-txt" data-en="Measuring the model" data-ar="جارٍ قياس النموذج">Measuring the model</div>
+</div>
+
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <a class="nav-brand" href="../">
+    <img src="../assets/img/brand/logo.png" alt="BASE">
+    <span class="nav-sub">BOQ</span>
+  </a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="#method" data-en="Method" data-ar="المنهج">Method</a>
+    <a href="#ascent" data-en="Walkthrough" data-ar="الجولة">Walkthrough</a>
+    <a href="#projects" data-en="Projects" data-ar="المشاريع">Projects</a>
+    <a href="#ledger" data-en="Ledger" data-ar="السجل">Ledger</a>
+    <a href="#contact" data-en="Contact" data-ar="تواصل">Contact</a>
+  </nav>
+  <button class="lang" id="langBtn" type="button" aria-label="Switch language">عربي</button>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="hero-grain" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <p class="eyebrow"><span class="dot"></span><span data-en="BASE · Bill of Quantities · Kuwait" data-ar="BASE · جداول الكميات · الكويت">BASE · Bill of Quantities · Kuwait</span></p>
+    <h1 class="hero-title">
+      <span class="line"><span data-en="Every cubic metre," data-ar="كل متر مكعب،">Every cubic metre,</span></span>
+      <span class="line"><em data-en="every bar —" data-ar="كل سيخ —">every bar —</em></span>
+      <span class="line"><span data-en="measured from the model." data-ar="مقاس من النموذج.">measured from the model.</span></span>
+    </h1>
+    <p class="hero-lede" data-en="Quantities taken straight from coordinated Revit structural models: concrete, reinforcement to BS 8666 and blockwork, delivered as client-ready workbooks. No re-measuring, and no drift between drawing and bill." data-ar="كميات مأخوذة مباشرة من نماذج ريفيت الإنشائية المنسّقة: الخرسانة، والحديد حسب BS 8666، والطابوق — تُسلَّم في ملفات جاهزة للعميل. بلا إعادة قياس، وبلا فرق بين المخطط والجدول.">Quantities taken straight from coordinated Revit structural models: concrete, reinforcement to BS 8666 and blockwork, delivered as client-ready workbooks. No re-measuring, and no drift between drawing and bill.</p>
+    <div class="hero-stats">
+      <div class="stat"><b class="count" data-key="concrete">0</b><span>m³ <i data-en="concrete modelled" data-ar="خرسانة منمذجة">concrete modelled</i></span></div>
+      <div class="stat"><b class="count" data-key="steel">0</b><span>t <i data-en="reinforcement placed" data-ar="حديد تسليح">reinforcement placed</i></span></div>
+      <div class="stat"><b class="count" data-key="projects">0</b><span><i data-en="projects measured" data-ar="مشروعاً مُقاساً">projects measured</i></span></div>
+      <div class="stat"><b class="count" data-key="levels">0</b><span><i data-en="storeys modelled" data-ar="دوراً منمذجاً">storeys modelled</i></span></div>
+    </div>
+    <div class="hero-cta">
+      <a class="btn btn-red" href="#projects"><span data-en="View the projects" data-ar="استعرض المشاريع">View the projects</span></a>
+      <a class="btn btn-line" href="#ascent"><span data-en="Take the walkthrough" data-ar="ابدأ الجولة">Take the walkthrough</span></a>
+    </div>
+  </div>
+  <a class="scroll-cue" href="#method" aria-label="Scroll"><span></span></a>
+</section>
+
+<div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
+
+<!-- ============ METHOD WALKTHROUGH ============ -->
+<section class="method" id="method">
+  <div class="sec-head wrap">
+    <p class="eyebrow"><span class="dot"></span><span data-en="01 — The method" data-ar="٠١ — المنهج">01 — The method</span></p>
+    <h2 class="sec-title" data-en="From drawing to bill, in five moves." data-ar="من المخطط إلى الجدول، في خمس خطوات.">From drawing to bill, in five moves.</h2>
+  </div>
+
+  <div class="method-body wrap">
+    <div class="method-stage" aria-hidden="true">
+      <svg id="stage" viewBox="0 0 600 600">
+        <defs>
+          <pattern id="stageGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+          </pattern>
+          <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset="1" stop-color="#1a1a1a"/></linearGradient>
+        </defs>
+        <rect width="600" height="600" fill="url(#stageGrid)"/>
+        <g id="stageLayers"></g>
+      </svg>
+      <div class="stage-label"><span id="stageNo">01</span><span id="stageName">Drawing</span></div>
+    </div>
+
+    <ol class="method-steps">
+      <li class="step" data-step="0">
+        <span class="step-no">01</span>
+        <h3 data-en="Read the drawings" data-ar="قراءة المخططات">Read the drawings</h3>
+        <p data-en="Structural DWG, vector PDF or a scanned set. Grids, levels, column and beam schedules are pulled out first — and every assumption is written down before a single element is placed." data-ar="ملف كاد، أو PDF، أو مخططات ممسوحة. تُستخرج المحاور والمناسيب وجداول الأعمدة والكمرات أولاً — وتُكتب كل فرضية قبل وضع أي عنصر.">Structural DWG, vector PDF or a scanned set. Grids, levels, column and beam schedules are pulled out first — and every assumption is written down before a single element is placed.</p>
+      </li>
+      <li class="step" data-step="1">
+        <span class="step-no">02</span>
+        <h3 data-en="Build the concrete" data-ar="بناء الخرسانة">Build the concrete</h3>
+        <p data-en="Footings, raft, necks, columns, walls, beams, slabs and stairs modelled at true size and joined, so nothing is counted twice where elements meet." data-ar="القواعد واللبشة والرقاب والأعمدة والجدران والكمرات والبلاطات والأدراج بأبعادها الحقيقية ومربوطة ببعضها، فلا يُحسب شيء مرتين عند التقاء العناصر.">Footings, raft, necks, columns, walls, beams, slabs and stairs modelled at true size and joined, so nothing is counted twice where elements meet.</p>
+      </li>
+      <li class="step" data-step="2">
+        <span class="step-no">03</span>
+        <h3 data-en="Place every bar" data-ar="وضع كل سيخ">Place every bar</h3>
+        <p data-en="Reinforcement follows the structural details: laps, cranks, starter bars, cantilever U-bars, top mesh and ties — checked so no bar sits outside its concrete." data-ar="التسليح يتبع التفاصيل الإنشائية: الوصلات والتكسيح وأشاير الأعمدة وحديد الكوابيل والشبكة العلوية والكانات — مع فحص ألا يخرج أي سيخ من خرسانته.">Reinforcement follows the structural details: laps, cranks, starter bars, cantilever U-bars, top mesh and ties — checked so no bar sits outside its concrete.</p>
+      </li>
+      <li class="step" data-step="3">
+        <span class="step-no">04</span>
+        <h3 data-en="Schedule it" data-ar="جدولة الكميات">Schedule it</h3>
+        <p data-en="Concrete by element and floor, steel by diameter, blockwork by wall type. Bar-bending schedules to BS 8666. The model is the single source of truth." data-ar="الخرسانة حسب العنصر والدور، والحديد حسب القطر، والطابوق حسب نوع الجدار. جداول تفريد حسب BS 8666. النموذج هو المرجع الوحيد.">Concrete by element and floor, steel by diameter, blockwork by wall type. Bar-bending schedules to BS 8666. The model is the single source of truth.</p>
+      </li>
+      <li class="step" data-step="4">
+        <span class="step-no">05</span>
+        <h3 data-en="Deliver the workbook" data-ar="تسليم ملف العميل">Deliver the workbook</h3>
+        <p data-en="A bilingual client workbook — summary, concrete, steel and one sheet per element — print-ready, with automated checks so every total ties back to the model." data-ar="ملف عميل ثنائي اللغة — ملخص وخرسانة وحديد وورقة لكل عنصر — جاهز للطباعة، مع فحوص آلية تربط كل مجموع بالنموذج.">A bilingual client workbook — summary, concrete, steel and one sheet per element — print-ready, with automated checks so every total ties back to the model.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ TOWER ASCENT (scroll walkthrough) ============ -->
+<section class="ascent" id="ascent">
+  <div class="ascent-pin">
+    <div class="ascent-copy">
+      <p class="eyebrow"><span class="dot"></span><span data-en="02 — Walkthrough" data-ar="٠٢ — جولة">02 — Walkthrough</span></p>
+      <h2 class="sec-title" data-en="Climb the tower, floor by floor." data-ar="اصعد البرج، دوراً بدور.">Climb the tower, floor by floor.</h2>
+      <p class="ascent-sub" id="ascentSub" data-en="Al-Riggae Residential Tower — scroll to build it." data-ar="برج الرقعي السكني — مرّر لتبنيه.">Al-Riggae Residential Tower — scroll to build it.</p>
+      <div class="ascent-read">
+        <div><small data-en="Level" data-ar="المنسوب">Level</small><b id="aLevel">Raft</b></div>
+        <div><small data-en="Concrete" data-ar="الخرسانة">Concrete</small><b><span id="aConc">0</span> m³</b></div>
+        <div><small data-en="Steel" data-ar="الحديد">Steel</small><b><span id="aSteel">0</span> t</b></div>
+      </div>
+      <div class="ascent-track"><span id="aBar"></span></div>
+      <p class="fine" data-en="Running totals are spread evenly over the floors to illustrate the build-up; the final figures are the model's totals." data-ar="المجاميع موزّعة بالتساوي على الأدوار للتوضيح؛ الأرقام النهائية هي مجاميع النموذج.">Running totals are spread evenly over the floors to illustrate the build-up; the final figures are the model's totals.</p>
+    </div>
+    <div class="ascent-view" aria-hidden="true">
+      <canvas id="towerCanvas"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section class="projects" id="projects">
+  <div class="sec-head wrap">
+    <p class="eyebrow"><span class="dot"></span><span data-en="03 — The archive" data-ar="٠٣ — الأرشيف">03 — The archive</span></p>
+    <h2 class="sec-title" data-en="Projects measured." data-ar="مشاريع مُقاسة.">Projects measured.</h2>
+    <div class="toolbar">
+      <div class="filters" role="tablist" id="filters">
+        <button class="on" data-f="all" data-en="All" data-ar="الكل">All</button>
+        <button data-f="tower" data-en="Towers" data-ar="أبراج">Towers</button>
+        <button data-f="villa" data-en="Villas" data-ar="فلل">Villas</button>
+        <button data-f="chalet" data-en="Chalets" data-ar="شاليهات">Chalets</button>
+        <button data-f="commercial" data-en="Commercial" data-ar="تجاري">Commercial</button>
+      </div>
+      <label class="sort">
+        <span data-en="Sort" data-ar="ترتيب">Sort</span>
+        <select id="sort">
+          <option value="concrete" data-en="Concrete" data-ar="الخرسانة">Concrete</option>
+          <option value="steel" data-en="Steel" data-ar="الحديد">Steel</option>
+          <option value="levels" data-en="Storeys" data-ar="الأدوار">Storeys</option>
+          <option value="no" data-en="Project no." data-ar="رقم المشروع">Project no.</option>
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="grid wrap" id="grid"></div>
+</section>
+
+<!-- ============ LEDGER ============ -->
+<section class="ledger" id="ledger">
+  <div class="sec-head wrap">
+    <p class="eyebrow"><span class="dot"></span><span data-en="04 — The ledger" data-ar="٠٤ — السجل">04 — The ledger</span></p>
+    <h2 class="sec-title" data-en="Side by side." data-ar="جنباً إلى جنب.">Side by side.</h2>
+    <div class="toolbar">
+      <div class="filters" id="ledgerMode">
+        <button class="on" data-m="concrete" data-en="Concrete m³" data-ar="خرسانة م³">Concrete m³</button>
+        <button data-m="steel" data-en="Steel t" data-ar="حديد طن">Steel t</button>
+        <button data-m="ratio" data-en="Steel per m³ (kg)" data-ar="حديد لكل م³ (كغ)">Steel per m³ (kg)</button>
+      </div>
+    </div>
+  </div>
+  <div class="wrap"><div class="bars" id="bars"></div>
+    <p class="fine" data-en="Modelled quantities from the Revit models. Projects without a published figure for the selected measure are left out." data-ar="كميات منمذجة من نماذج ريفيت. المشاريع التي لا يوجد لها رقم منشور للمقياس المختار غير معروضة.">Modelled quantities from the Revit models. Projects without a published figure for the selected measure are left out.</p>
+  </div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section class="gallery" id="gallery">
+  <div class="sec-head wrap">
+    <p class="eyebrow"><span class="dot"></span><span data-en="05 — Inside the model" data-ar="٠٥ — داخل النموذج">05 — Inside the model</span></p>
+    <h2 class="sec-title" data-en="Detail you can price from." data-ar="تفاصيل يمكن التسعير منها.">Detail you can price from.</h2>
+  </div>
+  <div class="reel" id="reel">
+    <figure><img loading="lazy" src="../assets/img/projects/boq-01-full.webp" alt="Revit rebar model"></figure>
+    <figure><img loading="lazy" src="../assets/img/projects/boq-02-full.webp" alt="Rebar and BOQ study sheet"></figure>
+    <figure><img loading="lazy" src="../assets/img/projects/boq-03-full.webp" alt="Footing reinforcement"></figure>
+    <figure><img loading="lazy" src="../assets/img/projects/boq-04-full.webp" alt="Beam reinforcement"></figure>
+    <figure><img loading="lazy" src="../assets/img/projects/boq-05-full.webp" alt="Structural model"></figure>
+    <figure><img loading="lazy" src="../assets/img/projects/boq-06-full.webp" alt="Quantity schedule"></figure>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="contact" id="contact">
+  <div class="wrap contact-inner">
+    <p class="eyebrow"><span class="dot"></span><span data-en="06 — Start a takeoff" data-ar="٠٦ — ابدأ الحصر">06 — Start a takeoff</span></p>
+    <h2 class="contact-title" data-en="Send the drawings. Get the bill." data-ar="أرسل المخططات. استلم الجدول.">Send the drawings. Get the bill.</h2>
+    <p class="hero-lede" data-en="DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait." data-ar="كاد أو PDF أو مسح ضوئي — أبراج وفلل وشاليهات ومبانٍ تجارية في أنحاء الكويت.">DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait.</p>
+    <div class="hero-cta">
+      <a class="btn btn-red" id="waBtn" href="https://wa.me/96597116574" target="_blank" rel="noopener"><span data-en="WhatsApp +965 9711 6574" data-ar="واتساب ‎+965 9711 6574">WhatsApp +965 9711 6574</span></a>
+      <a class="btn btn-line" href="mailto:jalalmahmoud65@gmail.com"><span>jalalmahmoud65@gmail.com</span></a>
+    </div>
+  </div>
+</section>
+
+<footer class="foot wrap">
+  <span>© <span id="yr">2026</span> BASE — Architecture &amp; Interior Design</span>
+  <a href="../" data-en="← Main site" data-ar="الموقع الرئيسي ←">← Main site</a>
+</footer>
+
+<!-- ============ PROJECT DIALOG ============ -->
+<div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="mName">
+  <div class="modal-bg" data-close></div>
+  <article class="modal-card">
+    <button class="modal-x" data-close aria-label="Close">×</button>
+    <div class="modal-view"><canvas id="modalCanvas"></canvas></div>
+    <div class="modal-info">
+      <p class="eyebrow"><span class="dot"></span><span id="mNo"></span></p>
+      <h3 id="mName"></h3>
+      <p class="m-place" id="mPlace"></p>
+      <p class="m-scope" id="mScope"></p>
+      <div class="m-stats" id="mStats"></div>
+      <p class="m-note" id="mNote"></p>
+      <div class="m-nav">
+        <button id="mPrev" aria-label="Previous project">←</button>
+        <button id="mNext" aria-label="Next project">→</button>
+      </div>
+    </div>
+  </article>
+</div>
+
+<script src="data.js"></script>
+<script src="boq.js"></script>
+</body>
+</html>

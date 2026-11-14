@@ -5,4 +5,7 @@
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://jellox9991.github.io/base-design/boq/</loc>
+  </url>
 </urlset>

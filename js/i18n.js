@@ -14,6 +14,7 @@ window.I18N = {
     navServices: "Services",
     navProcess: "Process",
     navAbout: "Studio",
+    navBoq: "BOQ",
     navContact: "Start a project",
 
     heroEyebrow: "Kuwait · Architecture &amp; Interior",
@@ -145,6 +146,7 @@ window.I18N = {
     navServices: "الخدمات",
     navProcess: "منهجية العمل",
     navAbout: "المكتب",
+    navBoq: "الكميات",
     navContact: "ابدأ مشروعك",
 
     heroEyebrow: "الكويت · عمارة وتصميم داخلي",
