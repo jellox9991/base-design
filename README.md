@@ -108,10 +108,29 @@ specified finishes, and clients pick materials off these images.
 Out of the box the form opens WhatsApp with the enquiry pre-filled, so no
 lead is lost even with nothing configured.
 
-To receive enquiries by email instead, create a free form at
-[formspree.io](https://formspree.io) and paste the endpoint URL into
-`formEndpoint` in `js/config.js`. The form then posts by AJAX and shows an
-inline confirmation.
+To receive enquiries by email instead (free, no server needed):
+
+1. Sign up at [formspree.io](https://formspree.io) with the email you want
+   enquiries sent to, and confirm that email.
+2. Create a new form. Formspree gives you an endpoint like
+   `https://formspree.io/f/abcdwxyz`.
+3. Paste it into `formEndpoint` in `js/config.js` and push.
+
+The form then posts by AJAX and shows an inline confirmation. Each email
+arrives with the subject `Website enquiry: <project type> · <name>`. The free
+plan covers 50 submissions a month, which is plenty for a studio site.
+
+Built in:
+
+- A hidden spam-trap field (`_gotcha`) that Formspree uses to drop bot
+  submissions.
+- If sending fails, the visitor keeps what they typed and gets a one-tap
+  "Send it on WhatsApp" link with the same message, so no lead is lost.
+- Clearing `formEndpoint` switches the form back to WhatsApp.
+
+The endpoint is public by design (it is visible in the page source anyway),
+so it is safe to commit. In Formspree's form settings you can restrict
+submissions to your site's domain.
 
 ---
 

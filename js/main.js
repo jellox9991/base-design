@@ -534,38 +534,75 @@
   /* ------------------------------------------------ form */
   var form = $("#contactForm"), note = $("#formNote");
   if (form) {
+    var sendBtn = form.querySelector('button[type="submit"]');
+
+    function typeLabel() {
+      var sel = form.elements.type;
+      return sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].text : "";
+    }
+
+    function waUrl(data) {
+      var s = window.SITE || {};
+      var msg =
+        "Name: " + (data.get("name") || "") + "\n" +
+        "Phone: " + (data.get("phone") || "") + "\n" +
+        "Type: " + typeLabel() + "\n\n" +
+        (data.get("message") || "");
+      return "https://wa.me/" + s.whatsapp + "?text=" + encodeURIComponent(msg);
+    }
+
+    function setNote(text, cls) {
+      note.textContent = text;
+      note.className = "form__note" + (cls ? " " + cls : "");
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var s = window.SITE || {};
       var data = new FormData(form);
 
-      // No endpoint configured yet → hand off to WhatsApp so no lead is lost.
-      if (!s.formEndpoint) {
-        var msg =
-          "Name: " + (data.get("name") || "") + "\n" +
-          "Phone: " + (data.get("phone") || "") + "\n" +
-          "Type: " + (data.get("type") || "") + "\n\n" +
-          (data.get("message") || "");
-        window.open("https://wa.me/" + s.whatsapp + "?text=" + encodeURIComponent(msg), "_blank", "noopener");
-        note.textContent = t("fOk");
-        note.className = "form__note is-ok";
+      // Honeypot: real visitors never see this field, bots fill it in.
+      // Pretend it worked and send nothing.
+      if (data.get("_gotcha")) {
+        setNote(t("fOk"), "is-ok");
         form.reset();
         return;
       }
 
-      note.textContent = t("fSending");
-      note.className = "form__note";
+      // No endpoint configured yet → hand off to WhatsApp so no lead is lost.
+      if (!s.formEndpoint) {
+        window.open(waUrl(data), "_blank", "noopener");
+        setNote(t("fOk"), "is-ok");
+        form.reset();
+        return;
+      }
 
-      fetch(form.action, { method: "POST", body: data, headers: { Accept: "application/json" } })
+      // Formspree reads these: a clear subject line in the inbox, and the
+      // readable project type instead of the internal option value.
+      data.set("type", typeLabel());
+      data.set("_subject", "Website enquiry: " + typeLabel() + " · " + (data.get("name") || ""));
+
+      setNote(t("fSending"));
+      if (sendBtn) sendBtn.disabled = true;
+
+      fetch(s.formEndpoint, { method: "POST", body: data, headers: { Accept: "application/json" } })
         .then(function (r) {
-          if (!r.ok) throw new Error("bad status");
-          note.textContent = t("fOk");
-          note.className = "form__note is-ok";
+          if (!r.ok) throw new Error("bad status " + r.status);
+          setNote(t("fOk"), "is-ok");
           form.reset();
         })
         .catch(function () {
-          note.textContent = t("fErr");
-          note.className = "form__note is-err";
+          // Keep what they typed and offer the same message on WhatsApp.
+          setNote(t("fErr") + " ", "is-err");
+          var a = document.createElement("a");
+          a.href = waUrl(data);
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = t("fWa");
+          note.appendChild(a);
+        })
+        .then(function () {
+          if (sendBtn) sendBtn.disabled = false;
         });
     });
   }

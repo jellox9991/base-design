@@ -414,6 +414,11 @@
         <label for="msg" data-i18n="fMsg">Project details</label>
         <textarea id="msg" name="message" rows="4" required></textarea>
       </div>
+      <!-- Spam trap: hidden from people, bots fill it in. -->
+      <div class="form__trap" aria-hidden="true">
+        <label for="gotcha">Leave this empty</label>
+        <input id="gotcha" name="_gotcha" type="text" tabindex="-1" autocomplete="off">
+      </div>
       <button class="btn btn--primary btn--full" type="submit" data-i18n="fSend">Send request</button>
       <p class="form__note" id="formNote" role="status" aria-live="polite"></p>
     </form>
