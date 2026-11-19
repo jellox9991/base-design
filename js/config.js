@@ -19,5 +19,5 @@ window.SITE = {
   // Free email endpoint: sign up at https://formspree.io, create a form,
   // and paste its URL here, e.g. "https://formspree.io/f/abcdwxyz".
   // Until then the form opens WhatsApp instead. See README → Contact form.
-  formEndpoint: ""
+  formEndpoint: "https://formspree.io/f/mbgokgra"
 };
