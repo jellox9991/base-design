@@ -131,6 +131,7 @@ window.I18N = {
     fSending: "Sending…",
     fOk: "Thank you — your request was sent. We reply within one working day.",
     fErr: "Could not send. Please WhatsApp us instead.",
+    fWa: "Send it on WhatsApp",
 
     ftRights: "All rights reserved",
     ftTop: "Back to top"
@@ -263,6 +264,7 @@ window.I18N = {
     fSending: "جارٍ الإرسال…",
     fOk: "شكراً — تم إرسال طلبك. نردّ خلال يوم عمل واحد.",
     fErr: "تعذّر الإرسال. راسلنا على واتساب من فضلك.",
+    fWa: "ابعتها على واتساب",
 
     ftRights: "جميع الحقوق محفوظة",
     ftTop: "العودة للأعلى"
