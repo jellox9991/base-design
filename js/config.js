@@ -10,7 +10,7 @@ window.SITE = {
   // Shown on the site, formatted however you like.
   phoneDisplay: "+965 9711 6574",
 
-  email: "jalalmahmoud65@gmail.com",
+  email: "basedesignkw@gmail.com",
 
   // Leave both empty and the Instagram row hides itself.
   instagram: "https://instagram.com/base_architecture_",
