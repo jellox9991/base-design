@@ -9,6 +9,8 @@
 "use strict";
 
 var P = window.BOQ_PROJECTS || [];
+/* models live next to this script (boq/models/), whichever page loads it */
+var MODEL_DIR = (document.currentScript && document.currentScript.src || "boq/boq.js").replace(/[^\/]*$/, "") + "models/";
 var root = document.documentElement;
 var LANG = "en";
 try{ LANG = localStorage.getItem("boq-lang") === "ar" ? "ar" : "en"; }catch(e){}
@@ -36,7 +38,12 @@ var L = {
   ratio:{ en:"kg / m³", ar:"كغ / م³" }, levels:{ en:"Storeys", ar:"أدوار" },
   src:{ en:"Source", ar:"المصدر" }, proj:{ en:"Project", ar:"مشروع" },
   t:{ en:"t", ar:"طن" }, m3:{ en:"m³", ar:"م³" }, na:{ en:"not published", ar:"غير منشور" },
-  kasra:{ en:"Kasra plot", ar:"قسيمة كسرة" }
+  kasra:{ en:"Kasra plot", ar:"قسيمة كسرة" },
+  fSending:{ en:"Sending…", ar:"عم نبعت…" },
+  fOk:{ en:"Thank you, your request was sent. We reply within one working day.", ar:"شكراً، وصلنا طلبك. منرد عليك خلال يوم عمل." },
+  fErr:{ en:"Could not send. Please message us on WhatsApp instead.", ar:"ما قدرنا نبعت الطلب. راسلنا على واتساب لو سمحت." },
+  fWa:{ en:"Send it on WhatsApp", ar:"ابعتها على واتساب" },
+  fMissing:{ en:"Please fill in your name, phone and what you need.", ar:"عبّي الاسم ورقم الهاتف وشو بتحتاج لو سمحت." }
 };
 function l(k){ return L[k][LANG]; }
 
@@ -45,11 +52,73 @@ function applyLang(){
   $$("[data-en]").forEach(function(el){
     var v = el.getAttribute("data-" + LANG); if(v != null) el.textContent = v;
   });
+  $$("[data-en-ph]").forEach(function(el){
+    var v = el.getAttribute("data-" + LANG + "-ph"); if(v != null) el.placeholder = v;
+  });
+  var fn = $("#formNote"); if(fn){ fn.textContent = ""; fn.className = "qform-note"; }
   $("#langBtn").textContent = LANG === "ar" ? "EN" : "عربي";
   buildMarquee(); renderCards(); setStage(stageIdx, true);
   asc.label = ""; updateAscent(); heroRestart();
   if(modalIdx >= 0) fillModal();
   $$(".count").forEach(function(el){ if(el._done) el.textContent = fmt(TOT[el.dataset.key]); });
+}
+
+/* contact details come from js/config.js (window.SITE).
+   The HTML keeps the current values as a fallback if config.js fails to load. */
+function applyConfig(){
+  var s = window.SITE || {};
+  if(s.whatsapp){ $("#waBtn").href = "https://wa.me/" + s.whatsapp; }
+  if(s.phoneDisplay){
+    var wt = $("#waText");
+    wt.setAttribute("data-en", "WhatsApp " + s.phoneDisplay);
+    // U+200E keeps "+965 ..." reading left-to-right inside the RTL line
+    wt.setAttribute("data-ar", "واتساب \u200E" + s.phoneDisplay);
+    wt.textContent = wt.getAttribute("data-" + LANG);
+  }
+  if(s.email){
+    $("#mailBtn").href = "mailto:" + s.email;
+    $("#mailText").textContent = s.email;
+  }
+}
+
+/* contact form → email through Formspree (js/config.js formEndpoint).
+   No endpoint, or the send fails → the same message goes to WhatsApp, so no lead is lost. */
+function wireForm(){
+  var form = $("#contactForm"); if(!form) return;
+  var note = $("#formNote"), btn = form.querySelector('button[type="submit"]');
+  function typeLabel(){ var sel = form.elements.type; return sel.options[sel.selectedIndex].text; }
+  function waUrl(d){
+    var s = window.SITE || {};
+    var msg = "Name: " + (d.get("name")||"") + "\nPhone: " + (d.get("phone")||"") +
+              "\nBuilding: " + typeLabel() + "\n\n" + (d.get("message")||"");
+    return "https://wa.me/" + (s.whatsapp || "96597116574") + "?text=" + encodeURIComponent(msg);
+  }
+  function say(k, cls){ note.textContent = l(k); note.className = "qform-note" + (cls ? " " + cls : ""); }
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var s = window.SITE || {}, d = new FormData(form), bad = false;
+    ["name","phone","message"].forEach(function(n){
+      var el = form.elements[n], empty = !String(el.value).trim();
+      el.classList.toggle("is-bad", empty); if(empty) bad = true;
+    });
+    if(bad){ say("fMissing", "is-err"); return; }
+    if(d.get("_gotcha")){ say("fOk", "is-ok"); form.reset(); return; }   // bot
+    if(!s.formEndpoint){
+      window.open(waUrl(d), "_blank", "noopener"); say("fOk", "is-ok"); form.reset(); return;
+    }
+    d.set("type", typeLabel());
+    d.set("_subject", "BOQ enquiry: " + typeLabel() + " · " + (d.get("name")||""));
+    say("fSending"); btn.disabled = true;
+    fetch(s.formEndpoint, { method:"POST", body:d, headers:{ Accept:"application/json" } })
+      .then(function(r){ if(!r.ok) throw new Error(r.status); say("fOk", "is-ok"); form.reset(); })
+      .catch(function(){
+        say("fErr", "is-err"); note.appendChild(document.createTextNode(" "));
+        var a = document.createElement("a"); a.href = waUrl(d); a.target = "_blank"; a.rel = "noopener";
+        a.textContent = l("fWa"); note.appendChild(a);
+      })
+      .then(function(){ btn.disabled = false; });
+  });
+  form.addEventListener("input", function(e){ e.target.classList.remove("is-bad"); });
 }
 
 /* totals across the archive */
@@ -82,7 +151,7 @@ function getModel(no, cb){
   if(MODELS[no]){ cb(MODELS[no]); return; }
   if(WAIT[no]){ WAIT[no].push(cb); return; }
   WAIT[no] = [cb];
-  var s = document.createElement("script"); s.src = "models/" + no + ".js"; s.async = true;
+  var s = document.createElement("script"); s.src = MODEL_DIR + no + ".js"; s.async = true;
   s.onerror = function(){ delete WAIT[no]; };
   document.head.appendChild(s);
 }
@@ -628,6 +697,8 @@ function boot(){
   buildStage();
   getModel(HERO_NO, function(){}); getModel(ASC_P.no, function(){});
   wire();
+  applyConfig();
+  wireForm();
   applyLang();
   initCursor(); initReel(); onScroll();
   /* ?y=1234 jumps to a scroll position (used for screenshots) */
