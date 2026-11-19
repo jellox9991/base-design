@@ -52,6 +52,24 @@ function applyLang(){
   $$(".count").forEach(function(el){ if(el._done) el.textContent = fmt(TOT[el.dataset.key]); });
 }
 
+/* contact details come from ../js/config.js (window.SITE), same as the main site.
+   The HTML keeps the current values as a fallback if config.js fails to load. */
+function applyConfig(){
+  var s = window.SITE || {};
+  if(s.whatsapp){ $("#waBtn").href = "https://wa.me/" + s.whatsapp; }
+  if(s.phoneDisplay){
+    var wt = $("#waText");
+    wt.setAttribute("data-en", "WhatsApp " + s.phoneDisplay);
+    // U+200E keeps "+965 ..." reading left-to-right inside the RTL line
+    wt.setAttribute("data-ar", "واتساب \u200E" + s.phoneDisplay);
+    wt.textContent = wt.getAttribute("data-" + LANG);
+  }
+  if(s.email){
+    $("#mailBtn").href = "mailto:" + s.email;
+    $("#mailText").textContent = s.email;
+  }
+}
+
 /* totals across the archive */
 var TOT = { concrete:0, steel:0, projects:P.length, levels:0 };
 P.forEach(function(p){ TOT.concrete += p.concrete||0; TOT.steel += p.steel||0; TOT.levels += p.levels||0; });
@@ -628,6 +646,7 @@ function boot(){
   buildStage();
   getModel(HERO_NO, function(){}); getModel(ASC_P.no, function(){});
   wire();
+  applyConfig();
   applyLang();
   initCursor(); initReel(); onScroll();
   /* ?y=1234 jumps to a scroll position (used for screenshots) */
