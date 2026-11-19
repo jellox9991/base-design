@@ -3,16 +3,17 @@
 Portfolio site for **BASE**, a Kuwait-based architecture and interior design studio.
 Architecture · Interior design · BOQ & cost estimation · 3D visualization.
 
-**Live:** https://jellox9991.github.io/base-design/
+**Live:** https://jellox9991.github.io/base-design/  
+**BOQ services page:** https://jellox9991.github.io/base-design/boq/
 
 Static HTML/CSS/JS. No build step, no dependencies, no framework.
-The whole site is ~8 MB including every image.
+The whole site is ~17 MB including every image (`assets/` ~16 MB, `boq/` ~1 MB).
 
 ---
 
 ## Editing the site
 
-You only ever need to touch two files.
+You only ever need to touch three files.
 
 ### 1. `js/config.js` — your contact details
 
@@ -47,6 +48,22 @@ both an `en` and an `ar` version of its text.
 
 UI text (buttons, headings, service descriptions) lives in `js/i18n.js`,
 English and Arabic side by side.
+
+### 3. `boq/data.js` — the BOQ services page (`/boq/`)
+
+`/boq/` is a separate page showcasing quantity-takeoff work. Each entry in
+`window.BOQ_PROJECTS` is one project with its modelled `concrete` (m³) and
+`steel` (tonnes); use `null` when a figure isn't published and the card shows
+"not published". The headline totals (concrete, steel, projects, storeys) are
+summed from this file automatically, so there is nothing else to update.
+
+Names are district + building type, never the client's family name. The 3D
+view on each card is the real Revit geometry in `boq/models/<no>.js`, rebuilt
+with:
+
+```bash
+python tools/build_boq_models.py
+```
 
 ---
 
@@ -146,7 +163,12 @@ js/config.js               contact details          ← edit
 js/projects.js             project data             ← edit
 js/i18n.js                 English + Arabic UI text
 js/main.js                 behaviour
+boq/index.html             BOQ services page (/boq/)
+boq/data.js                BOQ project figures      ← edit
+boq/boq.js, boq/boq.css    BOQ page behaviour + styling
+boq/models/                per-project 3D models (generated)
 tools/build_images.py      image pipeline
+tools/build_boq_models.py  BOQ 3D model builder
 assets/img/                optimized WebP output
 ```
 
