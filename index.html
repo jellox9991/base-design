@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BASE BOQ — Model-Based Quantities | Kuwait</title>
 <meta name="description" content="BASE BOQ: concrete, reinforcement and blockwork quantities measured from coordinated Revit models — towers, villas, chalets and commercial work across Kuwait.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#ffffff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="BASE BOQ — Model-Based Quantities">
 <meta property="og:description" content="Every cubic metre and every bar, measured from the model. Towers, villas and chalets across Kuwait.">
@@ -15,13 +15,13 @@
 <link rel="icon" href="assets/img/brand/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@200;300;400;500&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="boq/boq.css">
 </head>
 <body>
 
 <div class="loader" id="loader" aria-hidden="true">
-  <div class="loader-mark"><img src="assets/img/brand/logo-mark.png" alt=""></div>
+  <div class="loader-mark"><img src="assets/img/brand/logo-mark-dark.png" alt=""></div>
   <div class="loader-bar"><span></span></div>
   <div class="loader-txt" data-en="Measuring the model" data-ar="جارٍ قياس النموذج">Measuring the model</div>
 </div>
@@ -31,7 +31,8 @@
 
 <header class="nav" id="nav">
   <a class="nav-brand" href="./">
-    <img src="assets/img/brand/logo.png" alt="BASE">
+    <img class="logo-light" src="assets/img/brand/logo.png" alt="BASE">
+    <img class="logo-dark" src="assets/img/brand/logo-dark.png" alt="" aria-hidden="true">
     <span class="nav-sub">BOQ</span>
   </a>
   <nav class="nav-links" aria-label="Sections">
@@ -40,33 +41,55 @@
     <a href="#projects" data-en="Projects" data-ar="المشاريع">Projects</a>
     <a href="#contact" data-en="Contact" data-ar="تواصل">Contact</a>
   </nav>
-  <button class="lang" id="langBtn" type="button" aria-label="Switch language">عربي</button>
+  <div class="nav-end">
+    <a class="nav-ico" data-wa href="https://wa.me/96597116574" target="_blank" rel="noopener" aria-label="WhatsApp">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.8 9.8 0 0 0-8.4 14.8L2.2 21.8l4.9-1.3A9.8 9.8 0 1 0 12 2.2Zm0 1.8a8 8 0 1 1-4.1 14.9l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 0 1 12 4Zm-3.3 4c-.2 0-.5 0-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.2.2 2 3.1 4.9 4.2 2.4.9 2.9.8 3.4.7.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4l-.5-.3-1.9-.9c-.3-.1-.5-.1-.7.2l-.9 1.1c-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6l.5-.5.3-.5v-.5l-.9-2.1c-.2-.5-.4-.5-.6-.5h-.5Z"/></svg>
+    </a>
+    <a class="nav-ico" data-mail href="mailto:basedesignkw@gmail.com" aria-label="Email">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3V5Zm1.8 1.8v.4l7.2 5.3 7.2-5.3v-.4H4.8Zm14.4 2.6-7.2 5.3-7.2-5.3v7.8h14.4V9.4Z"/></svg>
+    </a>
+    <button class="lang" id="langBtn" type="button" aria-label="Switch language">عربي</button>
+  </div>
 </header>
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="top">
   <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
-  <div class="hero-grain" aria-hidden="true"></div>
   <div class="hero-inner">
-    <p class="eyebrow"><span class="dot"></span><span data-en="BASE · Bill of Quantities · Kuwait" data-ar="BASE · جداول الكميات · الكويت">BASE · Bill of Quantities · Kuwait</span></p>
     <h1 class="hero-title">
       <span class="line"><span data-en="Every cubic metre," data-ar="كل متر مكعب،">Every cubic metre,</span></span>
-      <span class="line"><em data-en="every bar —" data-ar="كل سيخ —">every bar —</em></span>
+      <span class="line"><span data-en="every bar —" data-ar="كل سيخ —">every bar —</span></span>
       <span class="line"><span data-en="measured from the model." data-ar="مقاس من النموذج.">measured from the model.</span></span>
     </h1>
-    <p class="hero-lede" data-en="Quantities taken straight from coordinated Revit structural models: concrete, reinforcement to BS 8666 and blockwork, delivered as client-ready workbooks. No re-measuring, and no drift between drawing and bill." data-ar="كميات مأخوذة مباشرة من نماذج ريفيت الإنشائية المنسّقة: الخرسانة، والحديد حسب BS 8666، والطابوق — تُسلَّم في ملفات جاهزة للعميل. بلا إعادة قياس، وبلا فرق بين المخطط والجدول.">Quantities taken straight from coordinated Revit structural models: concrete, reinforcement to BS 8666 and blockwork, delivered as client-ready workbooks. No re-measuring, and no drift between drawing and bill.</p>
-    <div class="hero-stats">
-      <div class="stat"><b class="count" data-key="concrete">0</b><span>m³ <i data-en="concrete modelled" data-ar="خرسانة منمذجة">concrete modelled</i></span></div>
-      <div class="stat"><b class="count" data-key="steel">0</b><span>t <i data-en="reinforcement placed" data-ar="حديد تسليح">reinforcement placed</i></span></div>
-      <div class="stat"><b class="count" data-key="projects">0</b><span><i data-en="projects measured" data-ar="مشروعاً مُقاساً">projects measured</i></span></div>
-      <div class="stat"><b class="count" data-key="levels">0</b><span><i data-en="storeys modelled" data-ar="دوراً منمذجاً">storeys modelled</i></span></div>
-    </div>
-    <div class="hero-cta">
-      <a class="btn btn-red" href="#projects"><span data-en="View the projects" data-ar="استعرض المشاريع">View the projects</span></a>
-      <a class="btn btn-line" href="#ascent"><span data-en="Take the walkthrough" data-ar="ابدأ الجولة">Take the walkthrough</span></a>
-    </div>
   </div>
-  <a class="scroll-cue" href="#method" aria-label="Scroll"><span></span></a>
+  <a class="scroll-cue" href="#intro" aria-label="Scroll"><span></span></a>
+</section>
+
+<!-- ============ INTRO / AT A GLANCE ============ -->
+<section class="intro" id="intro">
+  <div class="intro-inner wrap">
+    <div class="intro-copy">
+      <h2 class="intro-name" data-en="BASE BOQ — Model-based quantities" data-ar="BASE BOQ — كميات من النموذج">BASE BOQ — Model-based quantities</h2>
+      <p class="intro-lede" data-en="Quantities taken straight from coordinated Revit structural models: concrete, reinforcement to BS 8666 and blockwork, delivered as client-ready workbooks. No re-measuring, and no drift between drawing and bill." data-ar="كميات مأخوذة مباشرة من نماذج ريفيت الإنشائية المنسّقة: الخرسانة، والحديد حسب BS 8666، والطابوق — تُسلَّم في ملفات جاهزة للعميل. بلا إعادة قياس، وبلا فرق بين المخطط والجدول.">Quantities taken straight from coordinated Revit structural models: concrete, reinforcement to BS 8666 and blockwork, delivered as client-ready workbooks. No re-measuring, and no drift between drawing and bill.</p>
+      <div class="hero-cta">
+        <a class="btn btn-red" href="#projects"><span data-en="View the projects" data-ar="استعرض المشاريع">View the projects</span></a>
+        <a class="btn btn-line" href="#ascent"><span data-en="Take the walkthrough" data-ar="ابدأ الجولة">Take the walkthrough</span></a>
+      </div>
+    </div>
+    <aside class="intro-spec">
+      <dl class="spec">
+        <div><dt data-en="Concrete modelled" data-ar="خرسانة منمذجة">Concrete modelled</dt><dd><b class="count" data-key="concrete">0</b> <span data-en="m³" data-ar="م³">m³</span></dd></div>
+        <div><dt data-en="Reinforcement placed" data-ar="حديد تسليح">Reinforcement placed</dt><dd><b class="count" data-key="steel">0</b> <span data-en="t" data-ar="طن">t</span></dd></div>
+        <div><dt data-en="Projects measured" data-ar="مشاريع مُقاسة">Projects measured</dt><dd><b class="count" data-key="projects">0</b></dd></div>
+        <div><dt data-en="Storeys modelled" data-ar="أدوار منمذجة">Storeys modelled</dt><dd><b class="count" data-key="levels">0</b></dd></div>
+        <div><dt data-en="Bar schedules" data-ar="جداول التفريد">Bar schedules</dt><dd>BS 8666</dd></div>
+        <div><dt data-en="Coverage" data-ar="النطاق">Coverage</dt><dd data-en="Towers, villas, chalets and commercial — Kuwait" data-ar="أبراج وفلل وشاليهات وتجاري — الكويت">Towers, villas, chalets and commercial — Kuwait</dd></div>
+      </dl>
+      <p class="spec-share"><span data-en="Contact :" data-ar="تواصل :">Contact :</span>
+        <a data-wa href="https://wa.me/96597116574" target="_blank" rel="noopener" data-en="WhatsApp" data-ar="واتساب">WhatsApp</a>
+        <a data-mail href="mailto:basedesignkw@gmail.com" data-en="Email" data-ar="البريد">Email</a></p>
+    </aside>
+  </div>
 </section>
 
 <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
@@ -178,24 +201,30 @@
     <h2 class="sec-title" data-en="Detail you can price from." data-ar="تفاصيل يمكن التسعير منها.">Detail you can price from.</h2>
   </div>
   <div class="reel" id="reel">
-    <figure><img loading="lazy" src="assets/img/projects/boq-01-full.webp" alt="Revit rebar model"></figure>
-    <figure><img loading="lazy" src="assets/img/projects/boq-02-full.webp" alt="Rebar and BOQ study sheet"></figure>
-    <figure><img loading="lazy" src="assets/img/projects/boq-03-full.webp" alt="Footing reinforcement"></figure>
-    <figure><img loading="lazy" src="assets/img/projects/boq-04-full.webp" alt="Beam reinforcement"></figure>
-    <figure><img loading="lazy" src="assets/img/projects/boq-05-full.webp" alt="Structural model"></figure>
-    <figure><img loading="lazy" src="assets/img/projects/boq-06-full.webp" alt="Quantity schedule"></figure>
+    <div class="reel-col">
+      <figure><img loading="lazy" src="assets/img/projects/boq-03-full.webp" width="1055" height="1491" alt="Footing reinforcement"></figure>
+      <figure><img loading="lazy" src="assets/img/projects/boq-04-full.webp" width="2000" height="707" alt="Beam reinforcement"></figure>
+      <figure><img loading="lazy" src="assets/img/projects/boq-05-full.webp" width="2000" height="845" alt="Structural model"></figure>
+    </div>
+    <div class="reel-col">
+      <figure><img loading="lazy" src="assets/img/projects/boq-01-full.webp" width="1491" height="1055" alt="Revit rebar model"></figure>
+      <figure><img loading="lazy" src="assets/img/projects/boq-02-full.webp" width="1491" height="1055" alt="Rebar and BOQ study sheet"></figure>
+      <figure><img loading="lazy" src="assets/img/projects/boq-06-full.webp" width="2000" height="949" alt="Quantity schedule"></figure>
+    </div>
   </div>
 </section>
 
 <!-- ============ CONTACT ============ -->
 <section class="contact" id="contact">
   <div class="wrap contact-inner">
-    <p class="eyebrow"><span class="dot"></span><span data-en="05 — Start a takeoff" data-ar="٠٥ — ابدأ الحصر">05 — Start a takeoff</span></p>
-    <h2 class="contact-title" data-en="Send the drawings. Get the bill." data-ar="أرسل المخططات. استلم الجدول.">Send the drawings. Get the bill.</h2>
-    <p class="hero-lede" data-en="DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait." data-ar="كاد أو PDF أو مسح ضوئي — أبراج وفلل وشاليهات ومبانٍ تجارية في أنحاء الكويت.">DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait.</p>
-    <div class="hero-cta">
-      <a class="btn btn-red" id="waBtn" href="https://wa.me/96597116574" target="_blank" rel="noopener"><span id="waText" data-en="WhatsApp +965 9711 6574" data-ar="واتساب ‎+965 9711 6574">WhatsApp +965 9711 6574</span></a>
-      <a class="btn btn-line" id="mailBtn" href="mailto:basedesignkw@gmail.com"><span id="mailText">basedesignkw@gmail.com</span></a>
+    <div class="contact-copy">
+      <p class="eyebrow"><span class="dot"></span><span data-en="05 — Start a takeoff" data-ar="٠٥ — ابدأ الحصر">05 — Start a takeoff</span></p>
+      <h2 class="contact-title" data-en="Send the drawings. Get the bill." data-ar="أرسل المخططات. استلم الجدول.">Send the drawings. Get the bill.</h2>
+      <p class="contact-lede" data-en="DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait." data-ar="كاد أو PDF أو مسح ضوئي — أبراج وفلل وشاليهات ومبانٍ تجارية في أنحاء الكويت.">DWG, PDF or scans — towers, villas, chalets and commercial buildings across Kuwait.</p>
+      <div class="hero-cta">
+        <a class="btn btn-red" id="waBtn" href="https://wa.me/96597116574" target="_blank" rel="noopener"><span id="waText" data-en="WhatsApp +965 9711 6574" data-ar="واتساب ‎+965 9711 6574">WhatsApp +965 9711 6574</span></a>
+        <a class="btn btn-line" id="mailBtn" href="mailto:basedesignkw@gmail.com"><span id="mailText">basedesignkw@gmail.com</span></a>
+      </div>
     </div>
 
     <form class="qform" id="contactForm" method="POST" novalidate>
@@ -225,9 +254,37 @@
   </div>
 </section>
 
-<footer class="foot wrap">
-  <span>© <span id="yr">2026</span> BASE Design — Quantity takeoff &amp; BOQ, Kuwait</span>
-  <a href="#top" data-en="Back to top ↑" data-ar="إلى الأعلى ↑">Back to top ↑</a>
+<footer class="foot">
+  <div class="foot-inner wrap">
+    <div class="foot-brand">
+      <b>BASE Design</b>
+      <span data-en="Quantity takeoff &amp; BOQ" data-ar="حصر الكميات وجداول الكميات">Quantity takeoff &amp; BOQ</span>
+    </div>
+    <div class="foot-col">
+      <h4 data-en="Services" data-ar="الخدمات">Services</h4>
+      <p data-en="Concrete quantities" data-ar="كميات الخرسانة">Concrete quantities</p>
+      <p data-en="Reinforcement · BBS to BS 8666" data-ar="التسليح · جداول تفريد BS 8666">Reinforcement · BBS to BS 8666</p>
+      <p data-en="Blockwork" data-ar="الطابوق">Blockwork</p>
+      <p data-en="Client workbooks" data-ar="ملفات العميل">Client workbooks</p>
+    </div>
+    <div class="foot-col">
+      <h4 data-en="Buildings" data-ar="المباني">Buildings</h4>
+      <p data-en="Towers" data-ar="أبراج">Towers</p>
+      <p data-en="Villas" data-ar="فلل">Villas</p>
+      <p data-en="Chalets" data-ar="شاليهات">Chalets</p>
+      <p data-en="Commercial" data-ar="تجاري">Commercial</p>
+    </div>
+    <div class="foot-col">
+      <h4 data-en="Contact" data-ar="تواصل">Contact</h4>
+      <p><a data-mail data-show-email href="mailto:basedesignkw@gmail.com">basedesignkw@gmail.com</a></p>
+      <p><a data-wa data-show-phone href="https://wa.me/96597116574" target="_blank" rel="noopener" dir="ltr">+965 9711 6574</a></p>
+      <p data-en="Kuwait" data-ar="الكويت">Kuwait</p>
+    </div>
+  </div>
+  <div class="foot-base wrap">
+    <span>© <span id="yr">2026</span> BASE Design</span>
+    <a href="#top" data-en="Back to top" data-ar="إلى الأعلى">Back to top</a>
+  </div>
 </footer>
 
 <!-- ============ PROJECT DIALOG ============ -->
@@ -246,8 +303,8 @@
       <div class="m-stats" id="mStats"></div>
       <p class="m-note" id="mNote"></p>
       <div class="m-nav">
-        <button id="mPrev" aria-label="Previous project">←</button>
-        <button id="mNext" aria-label="Next project">→</button>
+        <button id="mPrev" aria-label="Previous project"><svg viewBox="0 0 16 32" aria-hidden="true"><path d="M13 2 3 16l10 14"/></svg></button>
+        <button id="mNext" aria-label="Next project"><svg viewBox="0 0 16 32" aria-hidden="true"><path d="M3 2l10 14L3 30"/></svg></button>
       </div>
     </div>
   </article>

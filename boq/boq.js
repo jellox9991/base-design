@@ -79,6 +79,11 @@ function applyConfig(){
     $("#mailBtn").href = "mailto:" + s.email;
     $("#mailText").textContent = s.email;
   }
+  /* header icons, intro "Contact :" links and footer */
+  $$("[data-wa]").forEach(function(a){ if(s.whatsapp) a.href = "https://wa.me/" + s.whatsapp; });
+  $$("[data-mail]").forEach(function(a){ if(s.email) a.href = "mailto:" + s.email; });
+  $$("[data-show-email]").forEach(function(a){ if(s.email) a.textContent = s.email; });
+  $$("[data-show-phone]").forEach(function(a){ if(s.phoneDisplay) a.textContent = s.phoneDisplay; });
 }
 
 /* contact form → email through Formspree (js/config.js formEndpoint).
@@ -251,7 +256,7 @@ View.prototype.reset = function(){
     ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(g0[0], g0[1], r*s*2.1*C30, r*s*2.1*S30, 0, 0, Math.PI*2); ctx.fill();
   }
   if(!o.noShadow) this.shadow(M.zmax);
-  if(VP) this.chrome();
+  if(VP && o.chrome !== false) this.chrome();
 };
 View.prototype.shadow = function(h){
   var ctx = this.ctx, L = this.L, ca = this.ca, sa = this.sa, pr = this.pr;
@@ -288,7 +293,7 @@ View.prototype.el = function(e){
 View.prototype.drawTo = function(n){
   n = Math.min(n, this.list.length);
   for(; this.i < n; this.i++){ var e = this.list[this.i]; this.el(e); this.vol += e.v; }
-  if(this.VP && this.i >= this.list.length && !this.chromed){ this.chromed = true; this.chrome(); }
+  if(this.VP && this.o.chrome !== false && this.i >= this.list.length && !this.chromed){ this.chromed = true; this.chrome(); }
 };
 View.prototype.done = function(){ return this.i >= this.list.length; };
 View.prototype.indexAtZ = function(z){              /* elements with z0 <= z */
@@ -306,7 +311,7 @@ View.prototype.chrome = function(){
   ctx.strokeStyle = "rgba(90,105,125,.5)";
   ctx.beginPath(); ctx.ellipse(cx, cy + R*.8, R*1.65, R*.82, 0, 0, Math.PI*2); ctx.stroke();
   var nP = p(0,-1.8,-.8);
-  ctx.fillStyle = "rgba(60,75,95,.9)"; ctx.font = "600 " + Math.round(R*.5) + "px Outfit, sans-serif"; ctx.fillText("N", nP[0], nP[1]);
+  ctx.fillStyle = "rgba(60,75,95,.9)"; ctx.font = "600 " + Math.round(R*.5) + "px Inter, sans-serif"; ctx.fillText("N", nP[0], nP[1]);
   var c = [[-1,-1],[1,-1],[1,1],[-1,1]], LBL = ["BACK","RIGHT","FRONT","LEFT"], k;
   ctx.strokeStyle = "rgba(95,110,130,.9)";
   for(k=0;k<4;k++){
@@ -316,27 +321,29 @@ View.prototype.chrome = function(){
     ctx.fillStyle = (NX - NY) > 0 ? "#eef1f4" : "#e0e5ea";
     ctx.beginPath(); q.forEach(function(pt,i){ i ? ctx.lineTo(pt[0],pt[1]) : ctx.moveTo(pt[0],pt[1]); }); ctx.closePath(); ctx.fill(); ctx.stroke();
     var mid = p((A[0]+B[0])*.4,(A[1]+B[1])*.4,0), faceW = Math.abs(q[1][0] - q[0][0]);
-    ctx.font = Math.max(6*dpr, Math.round(R*.25)) + "px Outfit, sans-serif";
+    ctx.font = Math.max(6*dpr, Math.round(R*.25)) + "px Inter, sans-serif";
     if(ctx.measureText(LBL[k]).width < faceW*.9){ ctx.fillStyle = "rgba(55,68,86,.85)"; ctx.fillText(LBL[k], mid[0], mid[1]); }
   }
   var top = c.map(function(a){ return p(a[0]*.8,a[1]*.8,.8); });
   ctx.fillStyle = "#f8fafb"; ctx.beginPath(); top.forEach(function(pt,i){ i ? ctx.lineTo(pt[0],pt[1]) : ctx.moveTo(pt[0],pt[1]); }); ctx.closePath(); ctx.fill(); ctx.stroke();
   var tc = p(0,0,.8); ctx.fillStyle = "rgba(55,68,86,.85)"; ctx.fillText("TOP", tc[0], tc[1]);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "rgba(50,60,75,.8)"; ctx.font = (10.5*dpr) + "px Outfit, sans-serif";
+  ctx.fillStyle = "rgba(50,60,75,.8)"; ctx.font = (10.5*dpr) + "px Inter, sans-serif";
   ctx.fillText("{3D}  ·  Realistic", 10*dpr, H - 10*dpr);
   ctx.restore();
 };
 
-/* ---------- 3. hero — the real Jabriya tower building itself ---------- */
+/* ---------- 3. hero — the real Jabriya tower building itself ----------
+   Drawn full-bleed in Realistic style (light concrete, sky) like an
+   architectural photograph; the CSS lays a dark veil over it for the title. */
 var hero = { cv:$("#heroCanvas"), visible:true, view:null, phase:"build", t:0, n:0, rots:[-0.62,-0.98,-0.3] };
 var HERO_NO = "019";
 function heroFrame(now){
   var M = MODELS[HERO_NO]; if(!M) return;
   var mobile = window.innerWidth < 760;
   if(!hero.view){
-    hero.view = new View(hero.cv, M, { rot:hero.rots[hero.n % hero.rots.length], cx: mobile ? .66 : (LANG === "ar" ? .28 : .72),
-      cy:.52, pad: mobile ? .12 : .07 });
+    hero.view = new View(hero.cv, M, { rot:hero.rots[hero.n % hero.rots.length], viewport:true, chrome:false,
+      cx: mobile ? .5 : (LANG === "ar" ? .4 : .6), cy:.5, pad: mobile ? .1 : .04 });
     hero.phase = "build"; hero.t = now; hero.cv.style.opacity = "1";
   }
   var v = hero.view;
@@ -370,12 +377,12 @@ function buildStage(){
   xs.forEach(function(x, n){
     a = iso(x,-6.5,0); b = iso(x,6.5,0);
     L0.push('<line class="draw" style="--len:'+lineLen(a,b).toFixed(0)+'" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="rgba(255,255,255,.35)" stroke-dasharray="6 4"/>');
-    L0.push('<circle cx="'+a[0]+'" cy="'+a[1]+'" r="10" fill="none" stroke="rgba(255,255,255,.5)"/><text x="'+a[0]+'" y="'+(a[1]+4)+'" fill="rgba(255,255,255,.7)" font-size="10" text-anchor="middle" font-family="Outfit">'+"ABCD"[n]+'</text>');
+    L0.push('<circle cx="'+a[0]+'" cy="'+a[1]+'" r="10" fill="none" stroke="rgba(255,255,255,.5)"/><text x="'+a[0]+'" y="'+(a[1]+4)+'" fill="rgba(255,255,255,.7)" font-size="10" text-anchor="middle" font-family="Inter">'+"ABCD"[n]+'</text>');
   });
   ys.forEach(function(y, n){
     a = iso(-8.5,y,0); b = iso(8.5,y,0);
     L0.push('<line class="draw" style="--len:'+lineLen(a,b).toFixed(0)+'" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="rgba(255,255,255,.35)" stroke-dasharray="6 4"/>');
-    L0.push('<circle cx="'+a[0]+'" cy="'+a[1]+'" r="10" fill="none" stroke="rgba(255,255,255,.5)"/><text x="'+a[0]+'" y="'+(a[1]+4)+'" fill="rgba(255,255,255,.7)" font-size="10" text-anchor="middle" font-family="Outfit">'+(n+1)+'</text>');
+    L0.push('<circle cx="'+a[0]+'" cy="'+a[1]+'" r="10" fill="none" stroke="rgba(255,255,255,.5)"/><text x="'+a[0]+'" y="'+(a[1]+4)+'" fill="rgba(255,255,255,.7)" font-size="10" text-anchor="middle" font-family="Inter">'+(n+1)+'</text>');
   });
   xs.forEach(function(x){ ys.forEach(function(y){
     L0.push('<polygon points="'+poly([iso(x-.4,y-.4,0),iso(x+.4,y-.4,0),iso(x+.4,y+.4,0),iso(x-.4,y+.4,0)])+'" fill="rgba(255,255,255,.75)"/>');
@@ -413,13 +420,13 @@ function buildStage(){
   /* L3 — schedule panel */
   var rows = [["Footings","m³","312.50"],["Columns","m³","128.70"],["Beams","m³","256.40"],["Slabs","m³","842.30"],["Ø12","t","18.42"],["Ø16","t","31.07"]];
   var L3 = ['<rect x="300" y="64" width="268" height="232" rx="2" fill="rgba(6,6,6,.94)" stroke="rgba(255,255,255,.18)"/>',
-            '<text x="318" y="92" fill="#f90130" font-size="10" letter-spacing="3" font-family="Outfit">SCHEDULE · LEVEL 01</text>'];
+            '<text x="318" y="92" fill="#f90130" font-size="10" letter-spacing="3" font-family="Inter">SCHEDULE · LEVEL 01</text>'];
   rows.forEach(function(r, n){
     var y = 124 + n*28;
     L3.push('<line x1="318" y1="'+(y+10)+'" x2="550" y2="'+(y+10)+'" stroke="rgba(255,255,255,.08)"/>');
-    L3.push('<text x="318" y="'+y+'" fill="rgba(255,255,255,.75)" font-size="12" font-family="Outfit">'+r[0]+'</text>');
-    L3.push('<text x="460" y="'+y+'" fill="rgba(255,255,255,.4)" font-size="11" font-family="Outfit">'+r[1]+'</text>');
-    L3.push('<text x="550" y="'+y+'" fill="#fff" font-size="13" text-anchor="end" font-family="Cormorant Garamond">'+r[2]+'</text>');
+    L3.push('<text x="318" y="'+y+'" fill="rgba(255,255,255,.75)" font-size="12" font-family="Inter">'+r[0]+'</text>');
+    L3.push('<text x="460" y="'+y+'" fill="rgba(255,255,255,.4)" font-size="11" font-family="Inter">'+r[1]+'</text>');
+    L3.push('<text x="550" y="'+y+'" fill="#fff" font-size="13" text-anchor="end" font-family="Inter">'+r[2]+'</text>');
   });
   g.push('<g class="lyr" data-l="3" style="transform-origin:430px 180px">'+L3.join("")+'</g>');
 
@@ -427,19 +434,19 @@ function buildStage(){
   var tabs = ["مقدمة","الملخص خرسانة","الملخص حديد","Summary","Slab","Beam"];
   var L4 = ['<rect x="34" y="370" width="532" height="200" rx="2" fill="#f4f1ec"/>',
             '<rect x="34" y="370" width="532" height="30" fill="#000"/>',
-            '<text x="50" y="390" fill="#fff" font-size="11" letter-spacing="3" font-family="Outfit">CLIENT WORKBOOK · REV 02</text>',
-            '<rect x="490" y="378" width="62" height="14" fill="#f90130"/><text x="521" y="389" fill="#fff" font-size="9" text-anchor="middle" font-family="Outfit">PDF ✓</text>'];
+            '<text x="50" y="390" fill="#fff" font-size="11" letter-spacing="3" font-family="Inter">CLIENT WORKBOOK · REV 02</text>',
+            '<rect x="490" y="378" width="62" height="14" fill="#f90130"/><text x="521" y="389" fill="#fff" font-size="9" text-anchor="middle" font-family="Inter">PDF ✓</text>'];
   [["Concrete","1,335.41","m³"],["Steel","163.59","t"],["BUA","2,348.7","m²"]].forEach(function(c, n){
     var x = 54 + n*172;
-    L4.push('<text x="'+x+'" y="432" fill="#777" font-size="10" letter-spacing="2" font-family="Outfit">'+c[0].toUpperCase()+'</text>');
-    L4.push('<text x="'+x+'" y="474" fill="#000" font-size="34" font-family="Cormorant Garamond">'+c[1]+'<tspan font-size="14" fill="#777"> '+c[2]+'</tspan></text>');
+    L4.push('<text x="'+x+'" y="432" fill="#777" font-size="10" letter-spacing="2" font-family="Inter">'+c[0].toUpperCase()+'</text>');
+    L4.push('<text x="'+x+'" y="474" fill="#000" font-size="34" font-family="Inter">'+c[1]+'<tspan font-size="14" fill="#777"> '+c[2]+'</tspan></text>');
   });
   for(i=0;i<5;i++) L4.push('<rect x="54" y="'+(494+i*10)+'" width="'+(470 - i*62)+'" height="4" fill="rgba(0,0,0,'+(.1+i*.03)+')"/>');
   var tx = 34;
   tabs.forEach(function(tb, n){
     var wd = 14 + tb.length*7.2;
     L4.push('<rect x="'+tx+'" y="548" width="'+wd+'" height="22" fill="'+(n===1?"#fff":"#e2ddd5")+'" stroke="#cfc8bd"/>');
-    L4.push('<text x="'+(tx+wd/2)+'" y="563" fill="'+(n===1?"#f90130":"#555")+'" font-size="10" text-anchor="middle" font-family="Tajawal,Outfit">'+tb+'</text>');
+    L4.push('<text x="'+(tx+wd/2)+'" y="563" fill="'+(n===1?"#f90130":"#555")+'" font-size="10" text-anchor="middle" font-family="Tajawal,Inter">'+tb+'</text>');
     tx += wd + 2;
   });
   g.push('<g class="lyr" data-l="4" style="transform-origin:300px 470px">'+L4.join("")+'</g>');
@@ -488,7 +495,7 @@ function updateAscent(){
 function ascentFrame(){
   var M = MODELS[ASC_P.no]; if(!M) return;
   var mobile = window.innerWidth < 860;
-  if(!asc.view) asc.view = new View(asc.cv, M, { rot:-0.62, cx:.5, cy:.5, pad: mobile ? .05 : .04 });
+  if(!asc.view) asc.view = new View(asc.cv, M, { rot:-0.62, viewport:true, chrome:false, cx:.5, cy:.5, pad: mobile ? .05 : .06 });
   var target = ascProgress();
   asc.p += (target - asc.p) * (REDUCED ? 1 : .14);
   var v = asc.view, cut = M.zmin + (M.zmax - M.zmin + .5) * Math.min(1, asc.p*1.05);
@@ -640,7 +647,8 @@ var sections = ["method","ascent","projects","contact"].map(function(id){ return
 function onScroll(){
   var y = window.scrollY, H = document.documentElement.scrollHeight - innerHeight;
   $("#progress").style.transform = "scaleX(" + (H > 0 ? y/H : 0) + ")";
-  $("#nav").classList.toggle("solid", y > 40);
+  /* header floats white-on-photo over the hero, turns solid white after it */
+  $("#nav").classList.toggle("solid", y > hero.cv.parentNode.offsetHeight - 90);
   /* method step = the step whose centre is nearest the viewport centre */
   var mid = innerHeight*.5, best = 0, bd = 1e9;
   $$(".step").forEach(function(s){ var r = s.getBoundingClientRect(), d = Math.abs(r.top + r.height/2 - mid); if(d < bd){ bd = d; best = +s.dataset.step; } });
